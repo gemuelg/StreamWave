@@ -204,4 +204,4 @@ export default async function MovieDetailsPage({ params }: { params: { id: strin
       </main>
     </div>
   );
-}
+} 
