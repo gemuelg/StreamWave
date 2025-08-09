@@ -1,0 +1,56 @@
+/* src/app/globals.css */
+
+/* CORRECT for Tailwind CSS v3.4.1 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Basic Dark Theme Defaults */
+html,
+body {
+  @apply h-full antialiased;
+}
+
+body {
+  @apply bg-primaryBg text-textLight;
+}
+
+/* Custom Swiper Styles for Pagination */
+.mySwiper .swiper-pagination-bullet-active {
+    background-color: #5d5dff !important; /* Your accent color */
+}
+
+/* Position the pagination dots correctly */
+.mySwiper .swiper-pagination {
+    bottom: 0px !important;
+}
+
+.mySwiper {
+    padding-bottom: 30px !important; /* Ensure enough space for the dots */
+}
+
+/* Optional: Custom Scrollbar Styles (these were compatible with v3) */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-secondaryBg rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-accentPurple/50 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-accentBlue;
+}
+
+/* If you added `@tailwindcss/line-clamp` to plugins in tailwind.config.js,
+   then you can remove this manual .line-clamp-3 rule. Otherwise, keep it. */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
