@@ -1,0 +1,39 @@
+# A unique name for your workflow, which will appear in the 'Actions' tab of your GitHub repository.
+name: Stream Wave CI
+
+# This defines when the workflow will run.
+on:
+  # Triggers the workflow on any push to the 'main' branch.
+  push:
+    branches: ["main"]
+
+  # Allows you to manually trigger the workflow from the GitHub UI.
+  workflow_dispatch:
+
+# This is a collection of all the jobs that will run in this workflow.
+jobs:
+  # A single job named 'build' which will run on a new virtual machine.
+  build:
+    # Specifies the type of virtual machine to use. 'ubuntu-latest' is a common and reliable choice.
+    runs-on: ubuntu-latest
+
+    # The steps are a sequence of tasks that make up the job.
+    steps:
+      # Step 1: Check out the code from your repository.
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up the Node.js environment.
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18" # Specify the Node.js version you use locally.
+          cache: "npm" # Caches node_modules for faster subsequent builds.
+
+      # Step 3: Install project dependencies.
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: Run the Next.js build.
+      - name: Build the project
+        run: npm run build
