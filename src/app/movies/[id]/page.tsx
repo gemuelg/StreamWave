@@ -31,9 +31,11 @@ export default async function MovieDetailsPage({ params }: { params: { id: strin
     notFound();
   }
 
-  const videoKey = getPrimaryVideoKey(movie.videos);
+  // FIXED: Add a safety check for movie.videos. This fixes the Type Error.
+  const videoKey = (movie.videos) ? getPrimaryVideoKey(movie.videos) : null;
   const recommendations = await getMovieRecommendations(id);
 
+  // FIXED: Add a safety check for movie.credits to prevent potential runtime errors
   // Filter crew and cast members
   const director = movie.credits?.crew?.find((member: CrewMember) => member.job === 'Director' && member.profile_path);
   const writers = movie.credits?.crew?.filter((member: CrewMember) => member.department === 'Writing' && member.profile_path).slice(0, 3);
@@ -126,26 +128,26 @@ export default async function MovieDetailsPage({ params }: { params: { id: strin
                 ))}
               </div>
 
-               {/* WATCH NOW AND VIEW TRAILER BUTTONS */}
-            <div className="flex justify-center md:justify-start gap-4 mt-6">
-              <Link
-                href={`/watch/movie/${id}`}
-                className="text-white px-2 py-3 rounded-full font-bold text-lg flex items-center gap-2 hover:bg-accent transition-colors duration-200"
-              >
-                <PlayCircleIcon className="h-6 w-6" />
-                Watch Now
-              </Link>
-              {videoKey && (
-                <a
-                  href={getYouTubeWatchUrl(videoKey)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-textLight px-6 py-3 rounded-full font-bold text-lg flex items-center gap-2 hover:bg-secondaryBg transition-colors duration-200"
+                {/* WATCH NOW AND VIEW TRAILER BUTTONS */}
+              <div className="flex justify-center md:justify-start gap-4 mt-6">
+                <Link
+                  href={`/watch/movie/${id}`}
+                  className="text-white px-2 py-3 rounded-full font-bold text-lg flex items-center gap-2 hover:bg-accent transition-colors duration-200"
                 >
-                  View Trailer
-                </a>
-              )}
-            </div>
+                  <PlayCircleIcon className="h-6 w-6" />
+                  Watch Now
+                </Link>
+                {videoKey && (
+                  <a
+                    href={getYouTubeWatchUrl(videoKey)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-textLight px-6 py-3 rounded-full font-bold text-lg flex items-center gap-2 hover:bg-secondaryBg transition-colors duration-200"
+                  >
+                    View Trailer
+                  </a>
+                )}
+              </div>
             </div>
           </div>
 
