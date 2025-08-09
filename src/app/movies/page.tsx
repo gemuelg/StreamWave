@@ -420,10 +420,6 @@ export default function MoviesPage() {
           )}
         </div>
       </main>
-
-      <footer className="w-full py-4 text-center text-textMuted text-sm bg-primaryBg border-t border-gray-800 mt-auto">
-        &copy; {new Date().getFullYear()} Stream Wave. All rights reserved. Data provided by TMDB.
-      </footer>
     </div>
   );
 }
