@@ -87,9 +87,10 @@ export default function MoviesPage() {
   }, [searchParams]);
 
   const selectedSort = useMemo(() => {
-    const sortParam = searchParams.get('sort_by');
-    return sortParam || 'popularity.desc';
-  }, [searchParams]);
+  const sortParam = searchParams.get('sort_by');
+  // Change the default sort from 'popularity.desc' to 'primary_release_date.desc'
+  return sortParam || 'primary_release_date.desc'; 
+}, [searchParams]);
   
   const [totalPages, setTotalPages] = useState(1);
 

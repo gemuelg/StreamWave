@@ -86,9 +86,10 @@ export default function TVContent() {
   }, [searchParams]);
 
   const selectedSort = useMemo(() => {
-    const sortParam = searchParams.get('sort_by');
-    return sortParam || 'popularity.desc';
-  }, [searchParams]);
+  const sortParam = searchParams.get('sort_by');
+  // Change the default sort to 'first_air_date.desc' for latest TV shows
+  return sortParam || 'first_air_date.desc'; 
+}, [searchParams]);
   
   const [totalPages, setTotalPages] = useState(1);
 
