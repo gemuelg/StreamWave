@@ -19,6 +19,14 @@ export interface Genre {
   name: string;
 }
 
+export interface TMDBListResponse<T> {
+  page: number;
+  results: T[];
+  total_pages: number;
+  total_results: number;
+}
+
+
 export interface ProductionCompany {
   id: number;
   logo_path: string | null;
@@ -116,19 +124,15 @@ export interface MovieDetails extends Movie {
   videos?: VideoResponse;
 }
 
-export const getTrendingMovies = async (): Promise<Movie[]> => {
-  try {
-    const response = await fetch(`${BASE_URL}/trending/movie/week?api_key=${API_KEY}&include_adult=false`);
-    if (!response.ok) {
-      throw new Error(`Error fetching trending movies: ${response.statusText}`);
-    }
-    const data = await response.json();
-    return data.results;
-  } catch (error) {
-    console.error("Failed to fetch trending movies:", error);
-    return [];
-  }
-};
+export async function getTrendingMovies(): Promise<Movie[]> {
+  const url = `${BASE_URL}/trending/movie/week?api_key=${API_KEY}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error('Failed to fetch trending movies');
+  }
+  const data = await response.json();
+  return data.results;
+}
 
 export const getMovieDetails = async (id: number): Promise<MovieDetails | null> => {
   try {
@@ -276,27 +280,42 @@ export async function getFilteredMovies(
   return { results: data.results, total_pages: data.total_pages };
 }
 
-export async function getFilteredTVShows(
-  page: number = 1,
-  genres: string = '',
-  year: number | null = null,
-  sortBy: string = 'popularity.desc'
-): Promise<{ results: TVShow[]; total_pages: number }> {
-  let url = `${BASE_URL}/discover/tv?api_key=${API_KEY}&language=en-US&page=${page}&sort_by=${sortBy}&include_adult=false`;
-  if (genres) {
-    url += `&with_genres=${genres}`;
-  }
-  if (year) {
-    url += `&first_air_date_year=${year}`;
-  }
-  url += `&vote_count.gte=500&vote_average.gte=6.0`; // <<< Updated: Added filters for well-known and high-quality TV shows
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch filtered TV shows: ${res.statusText}`);
-  }
-  const data = await res.json();
-  return { results: data.results, total_pages: data.total_pages };
-}
+export const getFilteredTVShows = async (
+  page: number = 1,
+  genres: string = '',
+  year: number | null = null,
+  sortBy: string = 'popularity.desc'
+): Promise<TMDBListResponse<TVShow>> => {
+  let url = `${BASE_URL}/discover/tv?api_key=${API_KEY}&language=en-US&page=${page}&sort_by=${sortBy}&include_adult=false`;
+  if (genres) {
+    url += `&with_genres=${genres}`;
+  }
+  if (year) {
+    url += `&first_air_date_year=${year}`;
+  }
+
+  url += `&vote_count.gte=500&vote_average.gte=6.0`; // Added filters for quality
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch TV shows: ${response.statusText}`);
+  }
+
+  return response.json();
+};
+
+export const getTVGenres = async (): Promise<Genre[]> => {
+  const url = `${BASE_URL}/genre/tv/list?api_key=${API_KEY}`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch TV genres: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.genres;
+};
 
 export async function getPopularTVShows(page: number = 1): Promise<{ results: TVShow[]; total_pages: number }> {
   const url = `${BASE_URL}/tv/popular?api_key=${API_KEY}&page=${page}&include_adult=false`;
@@ -318,18 +337,14 @@ export async function getPopularMovies(page: number = 1): Promise<{ results: Mov
   return { results: data.results, total_pages: data.total_pages };
 }
 
-export const getTrendingTVShows = async (): Promise<TVShow[]> => {
-  try {
-    const response = await fetch(`${BASE_URL}/trending/tv/week?api_key=${API_KEY}&include_adult=false`);
-    if (!response.ok) {
-      throw new Error(`Error fetching trending TV shows: ${response.statusText}`);
-    }
-    const data = await response.json();
-    return data.results;
-  } catch (error) {
-    console.error("Failed to fetch trending TV shows:", error);
-    return [];
-  }
+export async function getTrendingTVShows(): Promise<TVShow[]> {
+  const url = `${BASE_URL}/trending/tv/week?api_key=${API_KEY}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error('Failed to fetch trending TV shows');
+  }
+  const data = await response.json();
+  return data.results;
 };
 
 export async function getMovieRecommendations(movieId: number): Promise<Movie[]> {
@@ -374,50 +389,50 @@ export async function getTVShowRecommendations(tvId: number): Promise<TVShow[]> 
   }
 }
 
+// src/lib/tmdb.ts
+
+// ... (your existing code for interfaces and functions)
+
+// New interfaces for the multi-search API
 export interface MultiSearchResultItem {
-  vote_average: number;
-  id: number;
-  media_type: 'movie' | 'tv' | 'person';
-  poster_path?: string | null;
-  backdrop_path?: string | null;
-  title?: string;
-  name?: string;
-  release_date?: string;
-  first_air_date?: string;
-  profile_path?: string | null;
-  // ADDED: These properties are returned by the search API
-  popularity?: number;
-  vote_count?: number;
-  overview?: string;
+  id: number;
+  poster_path: string | null;
+  vote_average: number;
+  media_type: 'movie' | 'tv' | 'person';
+  // These properties might be on either Movie or TVShow, so we make them optional
+  title?: string;
+  name?: string;
+  vote_count?: number;
 }
 
 export interface MultiSearchResults {
-  page: number;
-  results: MultiSearchResultItem[];
-  total_pages: number;
-  total_results: number;
+  page: number;
+  results: MultiSearchResultItem[];
+  total_pages: number;
+  total_results: number;
 }
 
-
+// New function to perform a multi-search
 export async function searchMulti(query: string, page: number = 1): Promise<MultiSearchResults> {
-  if (!process.env.NEXT_PUBLIC_TMDB_API_KEY) {
-    throw new Error('NEXT_PUBLIC_TMDB_API_KEY is not defined in environment variables.');
-  }
-  if (!query) {
-    return { page: 1, results: [], total_pages: 0, total_results: 0 };
-  }
+  const url = `${BASE_URL}/search/multi?query=${encodeURIComponent(query)}&page=${page}&language=en-US`;
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_ACCESS_TOKEN}`,
+      },
+    });
 
-  const url = `${BASE_URL}/search/multi?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=${page}&include_adult=false`;
-  const response = await fetch(url);
+    if (!response.ok) {
+      console.error(`TMDB API Error: ${response.status} ${response.statusText}`);
+      throw new Error('Failed to fetch search results.');
+    }
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`TMDB Search API Error: Status ${response.status}, Body: ${errorText}`);
-    throw new Error(`Failed to search: ${response.status} - ${errorText}`);
-  }
-
-  const data: MultiSearchResults = await response.json();
-  return data;
+    const data: MultiSearchResults = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error in searchMulti function:", error);
+    throw error;
+  }
 }
 
 export const getYouTubeEmbedUrl = (key: string): string => {
@@ -449,3 +464,4 @@ export const getMultiEmbedMovieUrl = (tmdbId: number): string => {
 export const getMultiEmbedTvUrl = (tmdbId: number, seasonNumber: number, episodeNumber: number): string => {
   return `${MULTI_EMBED_BASE_URL}?video_id=${tmdbId}&tmdb=1&s=${seasonNumber}&e=${episodeNumber}`;
 };
+

@@ -1,17 +1,38 @@
-import { Suspense } from 'react';
+// src/app/movies/page.tsx
 import MoviesContent from './MoviesContent';
-import Navbar from '@/components/Navbar';
+import { getFilteredMovies, getMovieGenres } from '@/lib/tmdb';
+import { notFound } from 'next/navigation';
 
-export default function MoviesPage() {
+export default async function MoviesPage({
+  searchParams,
+}: {
+  searchParams: {
+    page?: string;
+    genres?: string;
+    year?: string;
+    sort_by?: string;
+  };
+}) {
+  const currentPage = parseInt(searchParams.page || '1', 10);
+  const selectedGenres = searchParams.genres || '';
+  const selectedYear = searchParams.year ? parseInt(searchParams.year, 10) : null;
+  const selectedSort = searchParams.sort_by || 'popularity.desc';
+
+  if (currentPage < 1 || currentPage > 500) {
+    notFound();
+  }
+
+  const [movies, genres] = await Promise.all([
+    getFilteredMovies(currentPage, selectedGenres, selectedYear, selectedSort),
+    getMovieGenres(),
+  ]);
+
   return (
-    <div className="min-h-screen flex flex-col bg-primaryBg text-textLight">
-      <Navbar />
-      <main className="flex-grow pt-20">
-        <Suspense fallback={<div>Loading movies...</div>}>
-          <MoviesContent />
-        </Suspense>
-      </main>
-      
-    </div>
+    <MoviesContent
+      initialMovies={movies.results}
+      initialTotalPages={movies.total_pages}
+      genres={genres}
+      currentPage={currentPage}
+    />
   );
 }

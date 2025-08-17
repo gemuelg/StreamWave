@@ -1,21 +1,26 @@
-import type { Metadata } from "next";
-import "./globals.css";
+// src/app/layout.tsx
+import './globals.css';
+import { Inter } from 'next/font/google';
+import Navbar from '@/components/Navbar';
 
+const inter = Inter({ subsets: ['latin'] });
 
-
-export const metadata: Metadata = {
-  title: "Stream Wave", // Change this
-  description: "Your ultimate free movie and TV show streaming destination.", // Change this
+export const metadata = {
+  title: 'Stream Wave',
+  description: 'Discover your next favorite movie or TV show.',
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en" className="dark">
-      <body>{children}</body>
+    <html lang="en">
+      <body className={inter.className}>
+        <Navbar />
+        <main>{children}</main>
+      </body>
     </html>
   );
 }

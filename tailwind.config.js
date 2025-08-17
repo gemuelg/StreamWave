@@ -8,6 +8,10 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        // Add a new custom breakpoint here
+        'tablet': '790px',
+      },
       colors: {
         primaryBg: '#0F172A',
         secondaryBg: '#1A202C',

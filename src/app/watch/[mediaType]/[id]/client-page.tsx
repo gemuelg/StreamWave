@@ -91,6 +91,7 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
           fetchedContent = await getMovieDetails(parseInt(id));
           if (fetchedContent) {
             fetchedRecommendations = await getMovieRecommendations(parseInt(id));
+            setSelectedEpisode(1); // Default to episode 1 for movies
           }
         } else if (mediaType === 'tv') {
           fetchedContent = await getTVShowDetails(parseInt(id));
@@ -217,84 +218,100 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
       )}
 
       {/* Main Content Area - Responsive Flexbox */}
-      <div className="relative z-30 flex flex-col lg:flex-row gap-8 w-full p-4 md:p-8 lg:p-12 mt-8 lg:mt-12 mb-8 items-start">
+      <div className="relative z-30 animate-fadeIn flex flex-col lg:flex-row gap-8 w-full px-4 md:px-8 lg:px-12 pt-8 md:pt-12 lg:pt-20 pb-8 items-start">
         
-        {/* Left Sidebar: Seasons and Episodes */}
-        {isTVShow && tvShowDetails && tvShowDetails.seasons && (
-          <aside
-            className="w-full lg:w-80 order-2 lg:order-1 bg-tertiaryBg/60 backdrop-blur-md rounded-lg p-4 flex flex-col"
-          >
-            
-            {/* Custom Season Dropdown */}
-            <div className="relative mb-4">
-              <button
-                onClick={() => setShowSeasonList(!showSeasonList)}
-                className="w-full bg-secondaryBg text-textLight rounded-lg py-2 pl-3 pr-10 flex items-center justify-between hover:bg-tertiaryBg transition-colors"
-              >
-                <div className="flex items-center gap-2 overflow-hidden">
-                  <Bars3Icon className="w-5 h-5 text-textMuted flex-shrink-0" />
-                  <span className="font-semibold text-lg lg:text-base xl:text-lg overflow-hidden text-ellipsis whitespace-nowrap">
-                    Season {selectedSeason}
-                  </span>
-                </div>
-                <ChevronDownIcon className={`w-5 h-5 text-textMuted transition-transform ${showSeasonList ? 'rotate-180' : ''}`} />
-              </button>
+        {/* Left Sidebar: Seasons/Episodes or single Movie Episode */}
+        <aside
+          className="w-full lg:w-80 order-2 lg:order-1 bg-white/5 backdrop-blur-xl rounded-2xl p-4 flex flex-col border border-white/10"
+        >
+          {isTVShow ? (
+            <>
+              {/* Custom Season Dropdown for TV Shows */}
+              <div className="relative mb-4">
+                <button
+                  onClick={() => setShowSeasonList(!showSeasonList)}
+                  className="w-full bg-secondaryBg text-textLight rounded-xl py-2 pl-4 pr-10 flex items-center justify-between hover:bg-tertiaryBg transition-colors"
+                >
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <Bars3Icon className="w-5 h-5 text-textMuted flex-shrink-0" />
+                    <span className="font-semibold text-lg lg:text-base xl:text-lg overflow-hidden text-ellipsis whitespace-nowrap">
+                      Season {selectedSeason}
+                    </span>
+                  </div>
+                  <ChevronDownIcon className={`w-5 h-5 text-textMuted transition-transform ${showSeasonList ? 'rotate-180' : ''}`} />
+                </button>
 
-              {showSeasonList && (
-                <div className="absolute top-full left-0 z-50 mt-2 w-full bg-secondaryBg rounded-lg shadow-lg max-h-[50vh] overflow-y-auto">
-                  {tvShowDetails.seasons.map(season => (
-                    <button
-                      key={season.id}
-                      onClick={() => handleSeasonSelect(season.season_number)}
-                      className={`block w-full text-left px-4 py-2 transition-colors
-                                  ${selectedSeason === season.season_number
-                                    ? 'bg-accent text-white'
-                                    : 'text-textMuted hover:bg-tertiaryBg'
-                                  }`}
-                    >
-                      Season {season.season_number}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            {/* Episode List */}
-            {selectedSeason && currentSeason && (
-              <>
-                <h3 className="font-semibold text-textLight mb-2">Episodes</h3>
-                <div className="flex-grow">
-                  <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-3 gap-2 pr-2">
-                    {Array.from({ length: currentSeason.episode_count || 0 }, (_, i) => i + 1).map(episodeNum => (
+                {showSeasonList && (
+                  <div className="absolute top-full left-0 z-50 mt-2 w-full bg-secondaryBg rounded-lg shadow-lg max-h-[50vh] overflow-y-auto">
+                    {tvShowDetails?.seasons.map(season => (
                       <button
-                        key={episodeNum}
-                        onClick={() => handleEpisodeChange(episodeNum)}
-                        className={`p-2 rounded-lg text-center transition-colors text-sm font-semibold
-                                    ${selectedEpisode === episodeNum
-                                      ? 'bg-accent text-white shadow-md'
-                                      : 'bg-secondaryBg hover:bg-tertiaryBg text-textMuted'
+                        key={season.id}
+                        onClick={() => handleSeasonSelect(season.season_number)}
+                        className={`block w-full text-left px-4 py-2 transition-colors
+                                    ${selectedSeason === season.season_number
+                                      ? 'bg-accent text-white'
+                                      : 'text-textMuted hover:bg-tertiaryBg'
                                     }`}
                       >
-                        {episodeNum}
+                        Season {season.season_number}
                       </button>
                     ))}
                   </div>
-                </div>
-              </>
-            )}
-            
-            {!selectedSeason || !currentSeason && (
-              <div className="text-center p-4 text-textMuted text-sm">
-                No seasons or episodes available.
+                )}
               </div>
-            )}
-          </aside>
-        )}
+              
+              {/* Episode List for TV Shows */}
+              {selectedSeason && currentSeason && (
+                <>
+                  <h3 className="font-semibold text-textLight mb-2">Episodes</h3>
+                  <div className="flex-grow">
+                    <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-3 gap-2 pr-2">
+                      {Array.from({ length: currentSeason.episode_count || 0 }, (_, i) => i + 1).map(episodeNum => (
+                        <button
+                          key={episodeNum}
+                          onClick={() => handleEpisodeChange(episodeNum)}
+                          className={`p-2 rounded-lg text-center transition-colors text-sm font-semibold
+                                      ${selectedEpisode === episodeNum
+                                        ? 'bg-accent text-white shadow-md'
+                                        : 'bg-secondaryBg hover:bg-tertiaryBg text-textMuted'
+                                      }`}
+                        >
+                          {episodeNum}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+              
+              {!selectedSeason || !currentSeason && (
+                <div className="text-center p-4 text-textMuted text-sm">
+                  No seasons or episodes available.
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Episodes for Movies */}
+              <h3 className="font-semibold text-textLight mb-2">Episodes</h3>
+              <div className="flex-grow">
+                <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-3 gap-2 pr-2">
+                  <button
+                    className={`p-2 rounded-lg text-center transition-colors text-sm font-semibold
+                                ${selectedEpisode === 1 ? 'bg-accent text-white shadow-md' : 'bg-secondaryBg hover:bg-tertiaryBg text-textMuted'}`}
+                  >
+                    1
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </aside>
 
         {/* Center: Video Player - Always at the top on mobile */}
         <div className={`flex-grow w-full order-1 lg:order-2 flex flex-col`}>
           {videoUrl ? (
-            <div ref={videoPlayerRef} className="relative w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl">
+            <div ref={videoPlayerRef} className="relative w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-inner shadow-gray-900">
               <iframe
                 key={videoUrl}
                 src={videoUrl}
@@ -313,7 +330,7 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               onClick={() => setSelectedServer('multiembed')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-colors
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-colors
                 ${selectedServer === 'multiembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
               `}
             >
@@ -321,7 +338,7 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
             </button>
             <button
               onClick={() => setSelectedServer('hnembed')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-colors
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-colors
                 ${selectedServer === 'hnembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
               `}
             >
@@ -332,13 +349,13 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
 
         {/* Right Sidebar: Details Panel - Placed after the player on mobile */}
         <aside 
-          className="w-full lg:w-80 order-3 lg:order-3 bg-tertiaryBg/60 backdrop-blur-md rounded-lg p-4"
+          className="w-full lg:w-80 order-3 lg:order-3 bg-white/5 backdrop-blur-xl rounded-2xl p-4 border border-white/10"
         >
           {/* Flex container for all details, stacked vertically */}
           <div className="flex flex-col gap-4">
             {/* 1. Image at the top */}
             {posterPath && (
-              <div className="relative w-[80px] h-[118px] rounded-md overflow-hidden shadow-lg">
+              <div className="relative w-[80px] h-[118px] rounded-lg overflow-hidden shadow-lg">
                 <Image 
                   src={getImageUrl(posterPath, 'w500')} 
                   alt={title || "Poster"} 
