@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { 
   getMovieDetails, 
   getTVShowDetails, 
@@ -35,7 +35,6 @@ interface WatchPageProps {
   };
 }
 
-// Utility function to format text with line breaks
 const formatOverviewText = (text: string | null | undefined, wordsPerLine = 8) => {
   if (!text) return '';
   const words = text.split(' ');
@@ -52,6 +51,7 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
   const { id, mediaType } = params;
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
 
   const [content, setContent] = useState<MovieDetails | TVShowDetails | null>(null);
   const [recommendations, setRecommendations] = useState<Movie[] | TVShow[]>([]);
@@ -65,25 +65,29 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
   
   const [selectedServer, setSelectedServer] = useState<'multiembed' | 'hnembed'>('multiembed');
 
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const videoPlayerRef = useRef<HTMLDivElement>(null);
 
-  const videoUrl = selectedServer === 'multiembed'
-    ? (mediaType === 'movie'
-      ? getMultiEmbedMovieUrl(parseInt(id))
-      : (selectedSeason && selectedEpisode
-        ? getMultiEmbedTvUrl(parseInt(id), selectedSeason, selectedEpisode)
-        : ''))
-    : (mediaType === 'movie'
-      ? getHnEmbedMovieUrl(parseInt(id))
-      : (selectedSeason && selectedEpisode
-        ? getHnEmbedTvUrl(parseInt(id), selectedSeason, selectedEpisode)
-        : ''));
+  useEffect(() => {
+    const hasReloadedKey = `reloaded_${pathname}`;
+    const hasReloaded = sessionStorage.getItem(hasReloadedKey);
+
+    if (!hasReloaded) {
+      sessionStorage.setItem(hasReloadedKey, 'true');
+      console.log('Client-side navigation detected. Forcing a page reload.');
+      window.location.reload();
+    }
+  }, [pathname]);
 
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true);
         setError(null);
+        setContent(null);
+        setRecommendations([]);
+        setVideoUrl(null);
+        
         let fetchedContent;
         let fetchedRecommendations;
 
@@ -91,7 +95,7 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
           fetchedContent = await getMovieDetails(parseInt(id));
           if (fetchedContent) {
             fetchedRecommendations = await getMovieRecommendations(parseInt(id));
-            setSelectedEpisode(1); // Default to episode 1 for movies
+            setSelectedEpisode(1);
           }
         } else if (mediaType === 'tv') {
           fetchedContent = await getTVShowDetails(parseInt(id));
@@ -129,7 +133,7 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
         } else {
           setError('Content not found.');
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error("Error fetching content details:", e);
         setError("Failed to load content details.");
       } finally {
@@ -140,6 +144,24 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
     fetchData();
   }, [id, mediaType, searchParams, router]);
 
+  useEffect(() => {
+    if (content) {
+      if (mediaType === 'movie') {
+        const url = selectedServer === 'multiembed'
+          ? getMultiEmbedMovieUrl(parseInt(id))
+          : getHnEmbedMovieUrl(parseInt(id));
+        setVideoUrl(url);
+      } else if (mediaType === 'tv' && selectedSeason && selectedEpisode) {
+        const url = selectedServer === 'multiembed'
+          ? getMultiEmbedTvUrl(parseInt(id), selectedSeason, selectedEpisode)
+          : getHnEmbedTvUrl(parseInt(id), selectedSeason, selectedEpisode);
+        setVideoUrl(url);
+      } else {
+        setVideoUrl(null);
+      }
+    }
+  }, [content, mediaType, id, selectedSeason, selectedEpisode, selectedServer]);
+
   const handleEpisodeChange = (episodeNumber: number) => {
     if (selectedSeason) {
       setSelectedEpisode(episodeNumber);
@@ -149,8 +171,8 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
 
   const handleSeasonSelect = (seasonNumber: number) => {
     setSelectedSeason(seasonNumber);
-    setSelectedEpisode(1); // Default to the first episode of the new season
-    setShowSeasonList(false); // Close the dropdown
+    setSelectedEpisode(1);
+    setShowSeasonList(false);
     router.push(`/watch/tv/${id}?season=${seasonNumber}&episode=1`);
   };
 
@@ -201,7 +223,6 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
     <div className="relative min-h-screen text-textLight bg-primaryBg overflow-hidden flex flex-col">
       <Navbar />
 
-      {/* Immersive background with a strong vignette */}
       {backdropPath && (
         <>
           <div
@@ -217,16 +238,12 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
         </>
       )}
 
-      {/* Main Content Area - Responsive Flexbox */}
       <div className="relative z-30 animate-fadeIn flex flex-col lg:flex-row gap-8 w-full px-4 md:px-8 lg:px-12 pt-8 md:pt-12 lg:pt-20 pb-8 items-start">
-        
-        {/* Left Sidebar: Seasons/Episodes or single Movie Episode */}
         <aside
           className="w-full lg:w-80 order-2 lg:order-1 bg-white/5 backdrop-blur-xl rounded-2xl p-4 flex flex-col border border-white/10"
         >
           {isTVShow ? (
             <>
-              {/* Custom Season Dropdown for TV Shows */}
               <div className="relative mb-4">
                 <button
                   onClick={() => setShowSeasonList(!showSeasonList)}
@@ -240,7 +257,6 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
                   </div>
                   <ChevronDownIcon className={`w-5 h-5 text-textMuted transition-transform ${showSeasonList ? 'rotate-180' : ''}`} />
                 </button>
-
                 {showSeasonList && (
                   <div className="absolute top-full left-0 z-50 mt-2 w-full bg-secondaryBg rounded-lg shadow-lg max-h-[50vh] overflow-y-auto">
                     {tvShowDetails?.seasons.map(season => (
@@ -248,10 +264,10 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
                         key={season.id}
                         onClick={() => handleSeasonSelect(season.season_number)}
                         className={`block w-full text-left px-4 py-2 transition-colors
-                                    ${selectedSeason === season.season_number
-                                      ? 'bg-accent text-white'
-                                      : 'text-textMuted hover:bg-tertiaryBg'
-                                    }`}
+                                  ${selectedSeason === season.season_number
+                                    ? 'bg-accent text-white'
+                                    : 'text-textMuted hover:bg-tertiaryBg'
+                                  }`}
                       >
                         Season {season.season_number}
                       </button>
@@ -259,8 +275,6 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
                   </div>
                 )}
               </div>
-              
-              {/* Episode List for TV Shows */}
               {selectedSeason && currentSeason && (
                 <>
                   <h3 className="font-semibold text-textLight mb-2">Episodes</h3>
@@ -271,10 +285,10 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
                           key={episodeNum}
                           onClick={() => handleEpisodeChange(episodeNum)}
                           className={`p-2 rounded-lg text-center transition-colors text-sm font-semibold
-                                      ${selectedEpisode === episodeNum
-                                        ? 'bg-accent text-white shadow-md'
-                                        : 'bg-secondaryBg hover:bg-tertiaryBg text-textMuted'
-                                      }`}
+                                    ${selectedEpisode === episodeNum
+                                    ? 'bg-accent text-white shadow-md'
+                                    : 'bg-secondaryBg hover:bg-tertiaryBg text-textMuted'
+                                  }`}
                         >
                           {episodeNum}
                         </button>
@@ -283,7 +297,6 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
                   </div>
                 </>
               )}
-              
               {!selectedSeason || !currentSeason && (
                 <div className="text-center p-4 text-textMuted text-sm">
                   No seasons or episodes available.
@@ -292,7 +305,6 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
             </>
           ) : (
             <>
-              {/* Episodes for Movies */}
               <h3 className="font-semibold text-textLight mb-2">Episodes</h3>
               <div className="flex-grow">
                 <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-3 gap-2 pr-2">
@@ -308,7 +320,6 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
           )}
         </aside>
 
-        {/* Center: Video Player - Always at the top on mobile */}
         <div className={`flex-grow w-full order-1 lg:order-2 flex flex-col`}>
           {videoUrl ? (
             <div ref={videoPlayerRef} className="relative w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-inner shadow-gray-900">
@@ -326,39 +337,35 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
             </div>
           )}
           
-          {/* Server selection buttons - Below the player */}
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               onClick={() => setSelectedServer('multiembed')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-colors
-                ${selectedServer === 'multiembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
-              `}
+                                ${selectedServer === 'multiembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
+                              `}
             >
               <PlayCircleIcon className="w-5 h-5" /> Server 1
             </button>
             <button
               onClick={() => setSelectedServer('hnembed')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-colors
-                ${selectedServer === 'hnembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
-              `}
+                                ${selectedServer === 'hnembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
+                              `}
             >
               <PlayCircleIcon className="w-5 h-5" /> Server 2
             </button>
           </div>
         </div>
 
-        {/* Right Sidebar: Details Panel - Placed after the player on mobile */}
-        <aside 
+        <aside
           className="w-full lg:w-80 order-3 lg:order-3 bg-white/5 backdrop-blur-xl rounded-2xl p-4 border border-white/10"
         >
-          {/* Flex container for all details, stacked vertically */}
           <div className="flex flex-col gap-4">
-            {/* 1. Image at the top */}
             {posterPath && (
               <div className="relative w-[80px] h-[118px] rounded-lg overflow-hidden shadow-lg">
-                <Image 
-                  src={getImageUrl(posterPath, 'w500')} 
-                  alt={title || "Poster"} 
+                <Image
+                  src={getImageUrl(posterPath, 'w500')}
+                  alt={title || "Poster"}
                   width={80}
                   height={118}
                   className="object-cover w-full h-full"
@@ -366,10 +373,8 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
               </div>
             )}
             
-            {/* 2. Title below the image */}
             <h1 className="text-xl md:text-2xl font-bold text-textLight">{title}</h1>
             
-            {/* 3. Rating and other details */}
             <div className="flex flex-wrap gap-2 text-sm text-textMuted">
               {isTVShow && (
                 <>
@@ -393,13 +398,12 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
               )}
             </div>
             
-            {/* 4. Info text (overview) at the bottom */}
             <p className="text-textLight text-sm">
               <span dangerouslySetInnerHTML={{ __html: formatOverviewText(showFullOverview ? overview : truncatedOverview) }} />
               {overview && overview.split(' ').length > OVERVIEW_WORD_LIMIT && (
                 <button
-                onClick={() => setShowFullOverview(!showFullOverview)}
-                className="text-accentBlue hover:underline ml-2"
+                  onClick={() => setShowFullOverview(!showFullOverview)}
+                  className="text-accentBlue hover:underline ml-2"
                 >
                   {showFullOverview ? 'Less' : 'More'}
                 </button>
@@ -409,7 +413,6 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
         </aside>
       </div>
       
-      {/* More Like This (Recommendations) Section */}
       <div className="relative z-30 w-full max-w-7xl mx-auto px-4 md:px-8 lg:px-12 mb-8">
         {recommendations.length > 0 && (
           <div className="mt-8">
