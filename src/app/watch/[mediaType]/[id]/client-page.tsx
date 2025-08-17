@@ -271,7 +271,7 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
                         onClick={() => handleEpisodeChange(episodeNum)}
                         className={`p-2 rounded-lg text-center transition-colors text-sm font-semibold
                                     ${selectedEpisode === episodeNum
-                                      ? 'bg-accent text-white shadow-sm'
+                                      ? 'bg-accent text-white shadow-md'
                                       : 'bg-secondaryBg hover:bg-tertiaryBg text-textMuted'
                                     }`}
                       >
