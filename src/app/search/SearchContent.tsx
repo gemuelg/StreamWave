@@ -108,6 +108,7 @@ export default function SearchContent() {
   const showInitialLoading = loading && results.length === 0;
 
   return (
+  <>
     <main className="flex-grow pt-20 px-4 md:px-8 lg:px-12">
       <h1 className="text-4xl font-bold text-textLight my-8 text-center">
         {`Search Results for "${query}"`}
@@ -159,5 +160,9 @@ export default function SearchContent() {
         </>
       )}
     </main>
+    <footer className="w-full py-4 text-center text-textMuted text-sm bg-primaryBg border-t border-gray-800 mt-8">
+        &copy; {new Date().getFullYear()} Stream Wave. All rights reserved.
+    </footer>
+  </>
   );
 }

@@ -5,21 +5,21 @@ export const metadata: Metadata = {
   description: 'Your personal streaming guide.',
   icons: {
     icon: [
-      { url: '/icon.svg', type: 'image/svg+xml' }, // for SVG
-      { url: '/icon.png', type: 'image/png' },   // for PNG
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon.png', type: 'image/png' },
     ],
-    shortcut: '/favicon.ico', // for older browsers
+    shortcut: '/favicon.ico',
   },
 };
 
-export default function RootLayout({
+export default function MoviesLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
+    // This div will be placed inside the main <body> from app/layout.tsx
+    // It correctly wraps the child components without re-rendering the body tag.
+    <div>{children}</div>
   );
 }

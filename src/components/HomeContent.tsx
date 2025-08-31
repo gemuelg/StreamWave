@@ -35,7 +35,7 @@ export default function HomeContent({
       </main>
 
       <footer className="w-full py-4 text-center text-textMuted text-sm bg-primaryBg border-t border-gray-800 mt-8">
-        &copy; {new Date().getFullYear()} Stream Wave. All rights reserved. Data provided by TMDB.
+        &copy; {new Date().getFullYear()} Stream Wave. All rights reserved.
       </footer>
     </div>
   );
