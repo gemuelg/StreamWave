@@ -19,5 +19,5 @@ React: The core library for building the user interface.
 
 TMDB API: The Movie Database API for fetching movie and TV show data.
 
-CSS Modules / Tailwind CSS: [Choose one depending on what you used] For styling components.
+CSS Modules / Tailwind CSS: For styling components.
 
