@@ -543,11 +543,11 @@ export const getHnEmbedTvUrl = (tmdbId: number, seasonNumber?: number, episodeNu
 };
 
 export const getMultiEmbedMovieUrl = (tmdbId: number): string => {
-  return `${MULTI_EMBED_BASE_URL}/embed/movie/${tmdbId}`;
+  return `${MULTI_EMBED_BASE_URL}/embed/movie/${tmdbId}?autoplay=true&poster=true&title=true&watchparty=false&chromecast=true&servericon=false&setting=false&pip=true&primarycolor=6C63FF&secondarycolor=9F9BFF&iconcolor=FFFFFF&font=Roboto&fontcolor=FFFFFF&fontsize=20&opacity=0.5`;
 };
 
 export const getMultiEmbedTvUrl = (tmdbId: number, seasonNumber: number, episodeNumber: number): string => {
-  return `${MULTI_EMBED_BASE_URL}/embed/tv/${tmdbId}/${seasonNumber}/${episodeNumber}`;
+  return `${MULTI_EMBED_BASE_URL}/embed/tv/${tmdbId}/${seasonNumber}/${episodeNumber}?autoplay=true&poster=true&title=true&watchparty=false&chromecast=true&servericon=false&setting=false&pip=true&primarycolor=6C63FF&secondarycolor=9F9BFF&iconcolor=FFFFFF&font=Roboto&fontcolor=FFFFFF&fontsize=20&opacity=0.5`;
 };
 export const getVideasyMovieUrl = (tmdbId: number): string => {
   const params = new URLSearchParams({
