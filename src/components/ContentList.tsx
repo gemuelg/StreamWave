@@ -3,7 +3,7 @@
 
 import React from 'react';
 import MovieCard from './MovieCard';
-import { Movie, TVShow } from '@/lib/tmdb';
+import { Movie, TVShow, Genre } from '@/lib/tmdb'; // Import Genre type
 
 type ContentItem = Movie | TVShow;
 
@@ -13,6 +13,7 @@ interface ContentListProps {
   totalPages: number;
   currentPage: number;
   onPageClick: (page: number | string) => void;
+  genresMap: Map<number, string>; // <-- ADD THIS NEW PROP
 }
 
 const getPaginationRange = (currentPage: number, totalPages: number, maxPagesToShow: number) => {
@@ -61,7 +62,8 @@ export default function ContentList({
   mediaType,
   totalPages,
   currentPage,
-  onPageClick
+  onPageClick,
+  genresMap // <-- DESTRUCTURE THE NEW PROP
 }: ContentListProps) {
   const MAX_PAGES_TO_SHOW = 7;
   const paginationRange = getPaginationRange(currentPage, totalPages, MAX_PAGES_TO_SHOW);
@@ -71,13 +73,12 @@ export default function ContentList({
       {content.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 mb-10">
           {content.map((item) => (
+            // <-- UPDATE THE MOVIECARD COMPONENT TO PASS THE FULL OBJECT AND GENRES MAP
             <MovieCard
               key={item.id}
-              id={item.id}
-              title={'title' in item ? item.title : item.name}
-              posterPath={item.poster_path}
-              voteAverage={item.vote_average}
-              type={mediaType}
+              content={item}
+              contentType={mediaType}
+              genresMap={genresMap}
             />
           ))}
         </div>

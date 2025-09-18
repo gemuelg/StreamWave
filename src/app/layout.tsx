@@ -1,25 +1,21 @@
-// src/app/layout.tsx
 import './globals.css';
-import { Inter } from 'next/font/google';
+import { ReactNode } from 'react';
 import Navbar from '@/components/Navbar';
-
-const inter = Inter({ subsets: ['latin'] });
+import AuthListener from '@/components/AuthListener';
 
 export const metadata = {
-  title: 'Stream Wave',
-  description: 'Discover your next favorite movie or TV show.',
+  title: 'StreamWave',
+  description: 'Your next-generation streaming platform',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body>
         <Navbar />
         <main>{children}</main>
+        <div id="portal-root" />
+        <AuthListener />
       </body>
     </html>
   );

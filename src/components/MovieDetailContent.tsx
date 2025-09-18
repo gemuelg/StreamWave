@@ -1,12 +1,13 @@
 // src/components/MovieDetailContent.tsx
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react'; // ADD useMemo here
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Navbar from '@/components/Navbar';
-import { getImageUrl, getYouTubeWatchUrl, MovieDetails, Movie, TVShow, CastMember, CrewMember } from '@/lib/tmdb';
+// IMPORT getMovieGenres and Genre
+import { getImageUrl, getYouTubeWatchUrl, MovieDetails, Movie, TVShow, CastMember, CrewMember, getMovieGenres, Genre } from '@/lib/tmdb';
 import MovieCard from '@/components/MovieCard';
 import { ClockIcon, StarIcon, UserIcon, PlayCircleIcon } from '@heroicons/react/24/outline';
 
@@ -27,6 +28,26 @@ export default function MovieDetailContent({
   writers,
   cast,
 }: MovieDetailContentProps) {
+  // --- ADD STATE FOR GENRES
+  const [genres, setGenres] = useState<Genre[]>([]);
+
+  // --- USEEFFECT TO FETCH GENRES ONCE
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const movieGenres = await getMovieGenres();
+        setGenres(movieGenres);
+      } catch (err) {
+        console.error("Failed to fetch movie genres:", err);
+      }
+    };
+    fetchGenres();
+  }, []);
+
+  // --- CREATE A MEMOIZED MAP FROM THE GENRES
+  const genresMap = useMemo(() => {
+    return new Map(genres.map(genre => [genre.id, genre.name]));
+  }, [genres]);
   
   // Helper for rendering a person's card
   const renderPersonCard = (person: { id: number, name: string, profile_path?: string | null, character?: string, job?: string }) => (
@@ -176,13 +197,12 @@ export default function MovieDetailContent({
               <h2 className="text-2xl font-bold mb-4 border-b border-secondaryBg pb-2">More Like This</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
                 {recommendations.map((rec) => (
+                  // --- UPDATED MOVIECARD TO PASS ALL REQUIRED PROPS
                   <MovieCard
                     key={rec.id}
-                    id={rec.id}
-                    title={rec.title}
-                    posterPath={rec.poster_path}
-                    voteAverage={rec.vote_average}
-                    type="movie"
+                    content={rec}
+                    contentType="movie"
+                    genresMap={genresMap}
                   />
                 ))}
               </div>

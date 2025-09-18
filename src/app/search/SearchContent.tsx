@@ -1,10 +1,11 @@
 // src/app/search/SearchContent.tsx
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import MovieCard from '@/components/MovieCard';
-import { searchMulti, MultiSearchResultItem, MultiSearchResults } from '@/lib/tmdb';
+// --- CORRECTED IMPORTS
+import { searchMulti, MultiSearchResultItem, MultiSearchResults, getMovieGenres, getTVGenres, Genre } from '@/lib/tmdb';
 
 const MIN_VOTES_FOR_JUNK = 10;
 const MIN_RATING_FOR_JUNK = 3.0;
@@ -19,37 +20,35 @@ export default function SearchContent() {
   const [results, setResults] = useState<MultiSearchResultItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const [genres, setGenres] = useState<Genre[]>([]);
 
   const pageInfoRef = useRef({ lastFetched: 0, totalPages: 1 });
   const isFetchingRef = useRef(false);
 
-  // A helper function to filter and sort all results
+  const genresMap = useMemo(() => {
+    return new Map(genres.map(genre => [genre.id, genre.name]));
+  }, [genres]);
+
   const filterAndSortResults = useCallback((items: MultiSearchResultItem[]) => {
-    // Filter out items that are not movies/tv shows, are missing a poster,
-    // or are "junk" (very low rating and very few votes)
     const filtered = items.filter(item => {
       const isMovieOrTV = item.media_type === 'movie' || item.media_type === 'tv';
       const hasPoster = !!item.poster_path;
       const isJunk = (item.vote_count || 0) < MIN_VOTES_FOR_JUNK && (item.vote_average || 0) < MIN_RATING_FOR_JUNK;
-
       return isMovieOrTV && hasPoster && !isJunk;
     });
     
-    // Perform a single, unified sort
     filtered.sort((a, b) => {
-      // Primary sort: vote_count descending
       const voteCountDifference = (b.vote_count || 0) - (a.vote_count || 0);
       if (voteCountDifference !== 0) {
         return voteCountDifference;
       }
-      // Secondary sort: vote_average descending
       return (b.vote_average || 0) - (a.vote_average || 0);
     });
 
     return filtered;
   }, []);
 
-  // Main fetching function for all types of requests
   const fetchResults = useCallback(async (isInitialLoad: boolean, isLoadMore: boolean) => {
     if (!query || isFetchingRef.current) return;
     
@@ -88,7 +87,20 @@ export default function SearchContent() {
     }
   }, [query, filterAndSortResults]);
 
-  // UseEffect to trigger the initial search
+  useEffect(() => {
+    const fetchGenresData = async () => {
+      try {
+        // --- CORRECTED FUNCTION CALLS
+        const movieGenres = await getMovieGenres();
+        const tvGenres = await getTVGenres();
+        setGenres([...movieGenres, ...tvGenres]);
+      } catch (err) {
+        console.error("Failed to fetch genres:", err);
+      }
+    };
+    fetchGenresData();
+  }, []);
+
   useEffect(() => {
     setResults([]);
     pageInfoRef.current = { lastFetched: 0, totalPages: 1 };
@@ -108,61 +120,59 @@ export default function SearchContent() {
   const showInitialLoading = loading && results.length === 0;
 
   return (
-  <>
-    <main className="flex-grow pt-20 px-4 md:px-8 lg:px-12">
-      <h1 className="text-4xl font-bold text-textLight my-8 text-center">
-        {`Search Results for "${query}"`}
-      </h1>
+    <>
+      <main className="flex-grow pt-20 px-4 md:px-8 lg:px-12">
+        <h1 className="text-4xl font-bold text-textLight my-8 text-center">
+          {`Search Results for "${query}"`}
+        </h1>
 
-      {showInitialLoading && (
-        <div className="flex justify-center items-center h-48">
-          <p>Searching for content...</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="flex justify-center items-center h-48">
-          <p className="text-red-500">{error}</p>
-        </div>
-      )}
-
-      {!showInitialLoading && !error && results.length === 0 && (
-        <div className="flex justify-center items-center h-48">
-          <p className="text-textMuted">No results found for your search.</p>
-        </div>
-      )}
-
-      {!error && results.length > 0 && (
-        <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 mb-10">
-            {results.map((item) => (
-              <MovieCard
-                key={item.id}
-                id={item.id}
-                title={item.media_type === 'movie' ? item.title! : item.name!}
-                posterPath={item.poster_path ?? null}
-                voteAverage={item.vote_average ?? 0}
-                type={item.media_type as 'movie' | 'tv'}
-              />
-            ))}
+        {showInitialLoading && (
+          <div className="flex justify-center items-center h-48">
+            <p>Searching for content...</p>
           </div>
+        )}
 
-          {showLoadMoreButton && (
-            <div className="flex justify-center items-center mb-10">
-              <button
-                onClick={handleLoadMore}
-                className="px-6 py-3 bg-secondaryBg text-textLight rounded-lg font-semibold hover:bg-gray-700 transition-colors"
-              >
-                Load More
-              </button>
+        {error && (
+          <div className="flex justify-center items-center h-48">
+            <p className="text-red-500">{error}</p>
+          </div>
+        )}
+
+        {!showInitialLoading && !error && results.length === 0 && (
+          <div className="flex justify-center items-center h-48">
+            <p className="text-textMuted">No results found for your search.</p>
+          </div>
+        )}
+
+        {!error && results.length > 0 && (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 mb-10">
+              {results.map((item) => (
+                <MovieCard
+                  key={item.id}
+                  content={item}
+                  contentType={item.media_type as 'movie' | 'tv'}
+                  genresMap={genresMap}
+                />
+              ))}
             </div>
-          )}
-        </>
-      )}
-    </main>
-    <footer className="w-full py-4 text-center text-textMuted text-sm bg-primaryBg border-t border-gray-800 mt-8">
+
+            {showLoadMoreButton && (
+              <div className="flex justify-center items-center mb-10">
+                <button
+                  onClick={handleLoadMore}
+                  className="px-6 py-3 bg-secondaryBg text-textLight rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </main>
+      <footer className="w-full py-4 text-center text-textMuted text-sm bg-primaryBg border-t border-gray-800 mt-8">
         &copy; {new Date().getFullYear()} Stream Wave. All rights reserved.
-    </footer>
-  </>
+      </footer>
+    </>
   );
 }

@@ -1,7 +1,7 @@
 // src/app/tv/TVContent.tsx
 "use client";
 
-import React from 'react';
+import React, { useMemo } from 'react'; // <-- IMPORT useMemo
 import Navbar from '@/components/Navbar';
 import { TVShow, Genre } from '@/lib/tmdb';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -30,6 +30,11 @@ export default function TVContent({
 }: TVContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  
+  // <-- CREATE THE GENRES MAP FROM THE GENRES ARRAY
+  const genresMap = useMemo(() => {
+    return new Map(genres.map(genre => [genre.id, genre.name]));
+  }, [genres]);
 
   const handlePageClick = (pageNumber: number | string) => {
     if (typeof pageNumber !== 'number') return;
@@ -51,7 +56,6 @@ export default function TVContent({
                 <span>TV Shows</span>
               </span>
             </h1>
-            {/* Pass the TV show specific sort options to the Filters component */}
             <Filters genres={genres} mediaType="tv" sortOptions={tvSortOptions} />
           </div>
           
@@ -61,6 +65,7 @@ export default function TVContent({
             totalPages={initialTotalPages}
             currentPage={currentPage}
             onPageClick={handlePageClick}
+            genresMap={genresMap} // <-- PASS THE GENRES MAP DOWN
           />
         </div>
       </main>

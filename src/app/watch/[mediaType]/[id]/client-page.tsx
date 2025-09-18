@@ -1,7 +1,7 @@
 // src/app/watch/[mediaType]/[id]/client-page.tsx
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { 
   getMovieDetails, 
@@ -16,13 +16,22 @@ import {
   getHnEmbedMovieUrl,
   getHnEmbedTvUrl,
   getMultiEmbedMovieUrl,
-  getMultiEmbedTvUrl
+  getMultiEmbedTvUrl,
+  getVideasyMovieUrl,
+  getVideasyTvUrl,
+  getMovieGenres,
+  getTVGenres,
+  Genre,
 } from '@/lib/tmdb';
 import Navbar from '@/components/Navbar';
 import MovieCard from '@/components/MovieCard';
 import { PlayCircleIcon, Bars3Icon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import Image from 'next/image';
+import CommentSection from '@/components/CommentSection';
+import { useUser } from '@/hooks/useUser';
+import { getMediaStats, incrementViews, rateMedia } from '@/lib/actions/media_stats';
+import toast from 'react-hot-toast';
 
 interface WatchPageProps {
   params: {
@@ -63,10 +72,15 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
   const [selectedEpisode, setSelectedEpisode] = useState<number | undefined>(undefined);
   const [showSeasonList, setShowSeasonList] = useState(false);
   
-  const [selectedServer, setSelectedServer] = useState<'multiembed' | 'hnembed'>('multiembed');
+  const [selectedServer, setSelectedServer] = useState<'multiembed' | 'hnembed' | 'videasy'>('multiembed');
 
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const videoPlayerRef = useRef<HTMLDivElement>(null);
+
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [stats, setStats] = useState({ averageRating: '0.0', viewsCount: 0 });
+
+  const user = useUser();
 
   useEffect(() => {
     const hasReloadedKey = `reloaded_${pathname}`;
@@ -78,6 +92,23 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
       window.location.reload();
     }
   }, [pathname]);
+
+  useEffect(() => {
+    async function fetchGenres() {
+      try {
+        const movieGenres = await getMovieGenres();
+        const tvGenres = await getTVGenres();
+        setGenres([...movieGenres, ...tvGenres]);
+      } catch (err) {
+        console.error("Failed to fetch genres:", err);
+      }
+    }
+    fetchGenres();
+  }, []);
+
+  const genresMap = useMemo(() => {
+    return new Map(genres.map(genre => [genre.id, genre.name]));
+  }, [genres]);
 
   useEffect(() => {
     async function fetchData() {
@@ -130,6 +161,12 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
               setSelectedEpisode(undefined);
             }
           }
+
+          await incrementViews(parseInt(id), mediaType as 'movie' | 'tv');
+          const { data, error: statsError } = await getMediaStats(parseInt(id), mediaType as 'movie' | 'tv');
+          if (data) {
+            setStats(data);
+          }
         } else {
           setError('Content not found.');
         }
@@ -146,22 +183,31 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
 
   useEffect(() => {
     if (content) {
+      let url: string | null = null;
+
       if (mediaType === 'movie') {
-        const url = selectedServer === 'multiembed'
-          ? getMultiEmbedMovieUrl(parseInt(id))
-          : getHnEmbedMovieUrl(parseInt(id));
-        setVideoUrl(url);
+        if (selectedServer === 'multiembed') {
+          url = getMultiEmbedMovieUrl(parseInt(id));
+        } else if (selectedServer === 'hnembed') {
+          url = getHnEmbedMovieUrl(parseInt(id));
+        } else if (selectedServer === 'videasy') {
+          url = getVideasyMovieUrl(parseInt(id));
+        }
       } else if (mediaType === 'tv' && selectedSeason && selectedEpisode) {
-        const url = selectedServer === 'multiembed'
-          ? getMultiEmbedTvUrl(parseInt(id), selectedSeason, selectedEpisode)
-          : getHnEmbedTvUrl(parseInt(id), selectedSeason, selectedEpisode);
-        setVideoUrl(url);
-      } else {
-        setVideoUrl(null);
+        if (selectedServer === 'multiembed') {
+          url = getMultiEmbedTvUrl(parseInt(id), selectedSeason, selectedEpisode);
+        } else if (selectedServer === 'hnembed') {
+          url = getHnEmbedTvUrl(parseInt(id), selectedSeason, selectedEpisode);
+        } else if (selectedServer === 'videasy') {
+          url = getVideasyTvUrl(parseInt(id), selectedSeason, selectedEpisode);
+        }
       }
+      setVideoUrl(url);
+    } else {
+      setVideoUrl(null);
     }
   }, [content, mediaType, id, selectedSeason, selectedEpisode, selectedServer]);
-
+  
   const handleEpisodeChange = (episodeNumber: number) => {
     if (selectedSeason) {
       setSelectedEpisode(episodeNumber);
@@ -174,6 +220,24 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
     setSelectedEpisode(1);
     setShowSeasonList(false);
     router.push(`/watch/tv/${id}?season=${seasonNumber}&episode=1`);
+  };
+  
+  const handleRating = async (rating: number) => {
+    if (!user) {
+      toast.error("You must be logged in to rate.");
+      return;
+    }
+
+    const res = await rateMedia(parseInt(id), mediaType as 'movie' | 'tv', rating * 2);
+    if (res.success) {
+      toast.success("Rating submitted successfully!");
+      const { data, error: statsError } = await getMediaStats(parseInt(id), mediaType as 'movie' | 'tv');
+      if (data) {
+        setStats(data);
+      }
+    } else {
+      toast.error(res.error || "Failed to submit rating.");
+    }
   };
 
   const isTVShow = mediaType === 'tv';
@@ -220,13 +284,13 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
   }
 
   return (
-    <div className="relative min-h-screen text-textLight bg-primaryBg overflow-hidden flex flex-col">
+    <div className="relative min-h-screen text-textLight bg-primaryBg overflow-hidden flex flex-col mt-4">
       <Navbar />
 
       {backdropPath && (
         <>
           <div
-            className="absolute inset-0 z-0 bg-cover bg-center opacity-10"
+            className="absolute inset-0 z-0 bg-cover bg-center opacity-20"
             style={{ backgroundImage: `url(${getImageUrl(backdropPath, 'original')})` }}
           ></div>
           <div className="absolute inset-0 z-10"
@@ -286,9 +350,9 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
                           onClick={() => handleEpisodeChange(episodeNum)}
                           className={`p-2 rounded-lg text-center transition-colors text-sm font-semibold
                                     ${selectedEpisode === episodeNum
-                                    ? 'bg-accent text-white shadow-md'
-                                    : 'bg-secondaryBg hover:bg-tertiaryBg text-textMuted'
-                                  }`}
+                                      ? 'bg-accent text-white shadow-md'
+                                      : 'bg-secondaryBg hover:bg-tertiaryBg text-textMuted'
+                                    }`}
                         >
                           {episodeNum}
                         </button>
@@ -310,7 +374,7 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
                 <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-3 gap-2 pr-2">
                   <button
                     className={`p-2 rounded-lg text-center transition-colors text-sm font-semibold
-                                ${selectedEpisode === 1 ? 'bg-accent text-white shadow-md' : 'bg-secondaryBg hover:bg-tertiaryBg text-textMuted'}`}
+                                    ${selectedEpisode === 1 ? 'bg-accent text-white shadow-md' : 'bg-secondaryBg hover:bg-tertiaryBg text-textMuted'}`}
                   >
                     1
                   </button>
@@ -337,23 +401,53 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
             </div>
           )}
           
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              onClick={() => setSelectedServer('multiembed')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-colors
-                                ${selectedServer === 'multiembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
-                              `}
-            >
-              <PlayCircleIcon className="w-5 h-5" /> Server 1
-            </button>
-            <button
-              onClick={() => setSelectedServer('hnembed')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-colors
-                                ${selectedServer === 'hnembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
-                              `}
-            >
-              <PlayCircleIcon className="w-5 h-5" /> Server 2
-            </button>
+          <div className="mt-4 flex items-center justify-between">
+            {/* Server Buttons on the left */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSelectedServer('multiembed')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-colors
+                                    ${selectedServer === 'multiembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
+                                  `}
+              >
+                <PlayCircleIcon className="w-5 h-5" /> Server 1
+              </button>
+              <button
+                onClick={() => setSelectedServer('hnembed')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-colors
+                                    ${selectedServer === 'hnembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
+                                  `}
+              >
+                <PlayCircleIcon className="w-5 h-5" /> Server 2
+              </button>
+              <button
+                onClick={() => setSelectedServer('videasy')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-colors
+                                    ${selectedServer === 'videasy' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
+                                  `}
+              >
+                <PlayCircleIcon className="w-5 h-5" /> Server 3
+              </button>
+            </div>
+
+            {/* Rating on the right */}
+            <div className="flex items-center space-x-2 bg-secondaryBg p-2 rounded-lg">
+              <span className="text-textMuted font-bold">Rate this:</span>
+              <div className="flex space-x-1">
+                {[...Array(5)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleRating(i + 1)}
+                    className="text-textMuted hover:text-yellow-500 transition-colors duration-200"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                      <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.908 -1l3.082 -6.25l3.082 6.25l6.908 1l-5 4.867l1.179 6.873z" fill="currentColor"/>
+                    </svg>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -374,7 +468,7 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
             )}
             
             <h1 className="text-xl md:text-2xl font-bold text-textLight">{title}</h1>
-            
+
             <div className="flex flex-wrap gap-2 text-sm text-textMuted">
               {isTVShow && (
                 <>
@@ -397,7 +491,7 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
                 </span>
               )}
             </div>
-            
+
             <p className="text-textLight text-sm">
               <span dangerouslySetInnerHTML={{ __html: formatOverviewText(showFullOverview ? overview : truncatedOverview) }} />
               {overview && overview.split(' ').length > OVERVIEW_WORD_LIMIT && (
@@ -414,6 +508,10 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
       </div>
       
       <div className="relative z-30 w-full max-w-7xl mx-auto px-4 md:px-8 lg:px-12 mb-8">
+        <div className="mt-8">
+          <CommentSection mediaId={parseInt(id)} mediaType={mediaType as 'movie' | 'tv'} />
+        </div>
+
         {recommendations.length > 0 && (
           <div className="mt-8">
             <h2 className="text-3xl font-bold mb-6">More Like This</h2>
@@ -422,7 +520,8 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
                 <MovieCard
                   key={item.id}
                   content={item}
-                  contentType={mediaType === 'movie' ? 'movie' : 'tv'}
+                  contentType={(item as any).media_type || mediaType}
+                  genresMap={genresMap}
                 />
               ))}
             </div>

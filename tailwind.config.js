@@ -23,6 +23,7 @@ module.exports = {
         accentBlue: '#3B82F6',
         accentPurple: '#8B5CF6',
         accentRed: '#EF4444',
+        darkOverlay: 'rgba(23, 23, 31, 0.8)',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

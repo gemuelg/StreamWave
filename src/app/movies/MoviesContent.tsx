@@ -1,7 +1,7 @@
 // src/app/movies/MoviesContent.tsx
 "use client";
 
-import React from 'react';
+import React, { useMemo } from 'react'; // <-- IMPORT useMemo
 import Navbar from '@/components/Navbar';
 import { Movie, Genre } from '@/lib/tmdb';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -15,7 +15,6 @@ interface MoviesContentProps {
   currentPage: number;
 }
 
-// Define the sort options specific to movies
 const movieSortOptions = [
   { name: 'Trending', value: 'popularity.desc' },
   { name: 'Release Date', value: 'primary_release_date.desc' },
@@ -30,6 +29,11 @@ export default function MoviesContent({
 }: MoviesContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // <-- CREATE THE GENRES MAP FROM THE GENRES ARRAY
+  const genresMap = useMemo(() => {
+    return new Map(genres.map(genre => [genre.id, genre.name]));
+  }, [genres]);
 
   const handlePageClick = (pageNumber: number | string) => {
     if (typeof pageNumber !== 'number') return;
@@ -51,7 +55,6 @@ export default function MoviesContent({
                 <span>Movies</span>
               </span>
             </h1>
-            {/* Pass the movie specific sort options to the Filters component */}
             <Filters genres={genres} mediaType="movie" sortOptions={movieSortOptions} />
           </div>
           
@@ -61,6 +64,7 @@ export default function MoviesContent({
             totalPages={initialTotalPages}
             currentPage={currentPage}
             onPageClick={handlePageClick}
+            genresMap={genresMap} // <-- PASS THE GENRES MAP DOWN
           />
         </div>
       </main>

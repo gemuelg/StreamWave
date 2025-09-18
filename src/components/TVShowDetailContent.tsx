@@ -1,11 +1,12 @@
 // src/components/TVShowDetailContent.tsx
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react'; // ADD useMemo here
 import Image from 'next/image';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
-import { getImageUrl, getYouTubeWatchUrl, TVShowDetails, TVShow, CastMember, CrewMember } from '@/lib/tmdb';
+// IMPORT getTVGenres and Genre
+import { getImageUrl, getYouTubeWatchUrl, TVShowDetails, TVShow, CastMember, CrewMember, getTVGenres, Genre } from '@/lib/tmdb';
 import MovieCard from '@/components/MovieCard';
 import { ClockIcon, StarIcon, UserIcon, PlayCircleIcon } from '@heroicons/react/24/outline';
 
@@ -24,6 +25,26 @@ export default function TVShowDetailContent({
   creators,
   cast,
 }: TVShowDetailContentProps) {
+  // --- ADD STATE FOR GENRES
+  const [genres, setGenres] = useState<Genre[]>([]);
+
+  // --- USEEFFECT TO FETCH GENRES ONCE
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const tvGenres = await getTVGenres(); // Fetch TV genres
+        setGenres(tvGenres);
+      } catch (err) {
+        console.error("Failed to fetch TV genres:", err);
+      }
+    };
+    fetchGenres();
+  }, []);
+
+  // --- CREATE A MEMOIZED MAP FROM THE GENRES
+  const genresMap = useMemo(() => {
+    return new Map(genres.map(genre => [genre.id, genre.name]));
+  }, [genres]);
   
   // Helper for rendering a person's card
   const renderPersonCard = (person: { id: number, name: string, profile_path?: string | null, character?: string, job?: string }) => (
@@ -123,12 +144,12 @@ export default function TVShowDetailContent({
                 </Link>
                 {videoKey && (
                   <a
-                  href={getYouTubeWatchUrl(videoKey)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-secondaryBg text-textLight px-6 py-3 rounded-full font-bold text-lg flex items-center gap-2 hover:bg-secondaryBgDark transition-colors duration-200"
+                    href={getYouTubeWatchUrl(videoKey)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-secondaryBg text-textLight px-6 py-3 rounded-full font-bold text-lg flex items-center gap-2 hover:bg-secondaryBgDark transition-colors duration-200"
                   >
-                  View Trailer
+                    View Trailer
                   </a>
                 )}
               </div>
@@ -172,13 +193,12 @@ export default function TVShowDetailContent({
               <h2 className="text-2xl font-bold mb-4 border-b border-secondaryBg pb-2">More Like This</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
                 {recommendations.map((rec) => (
+                  // --- UPDATED MOVIECARD TO PASS ALL REQUIRED PROPS
                   <MovieCard
                     key={rec.id}
-                    id={rec.id}
-                    title={rec.name}
-                    posterPath={rec.poster_path}
-                    voteAverage={rec.vote_average}
-                    type="tv"
+                    content={rec}
+                    contentType="tv" // Ensure this is 'tv' for TV shows
+                    genresMap={genresMap}
                   />
                 ))}
               </div>

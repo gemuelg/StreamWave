@@ -1,4 +1,3 @@
-// src/components/HomeHero.tsx
 "use client";
 
 import React from 'react';
@@ -24,6 +23,15 @@ export default function HomeHero({ content, contentType }: HomeHeroProps) {
   }
 
   const slides = content.slice(0, 5);
+
+  const getReleaseYear = (item: Movie | TVShow) => {
+    const date = 'release_date' in item ? item.release_date : item.first_air_date;
+    return date ? new Date(date).getFullYear() : 'N/A';
+  };
+
+  const getRating = (item: Movie | TVShow) => {
+    return item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
+  };
 
   return (
     <section className="relative w-full h-[55vh] md:h-[75vh] lg:h-[85vh] overflow-hidden">
@@ -56,21 +64,30 @@ export default function HomeHero({ content, contentType }: HomeHeroProps) {
             </div>
             
             <div className="relative z-20 w-full h-full flex items-end">
-              <div className="container mx-auto px-6 md:px-12 lg:px-20 py-10 md:py-16 text-white">
-                <h2 className="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-4 drop-shadow-lg leading-tight">
-                  {contentType === 'movie' ? (item as Movie).title : (item as TVShow).name}
-                </h2>
-                <p className="text-base md:text-lg mb-6 max-w-2xl line-clamp-3">
-                  {item.overview || "No overview available."}
-                </p>
-                <Link
-                  href={`/${contentType === 'movie' ? 'movies' : 'tv'}/${item.id}`}
-                  className="inline-flex items-center px-8 py-4 bg-accentBlue text-white text-xl font-bold rounded-lg
-                             hover:bg-accentPurple transition-colors duration-300 shadow-xl"
-                >
-                  Watch Now
-                  <PlayCircleIcon className="ml-3 w-6 h-6" />
-                </Link>
+              <div className="container px-6 md:px-12 lg:px-20 py-10 md:py-16 text-white text-left">
+                <div className="max-w-xl md:max-w-2xl lg:max-w-4xl">
+                  <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-2 md:mb-4 drop-shadow-lg leading-tight">
+                    {contentType === 'movie' ? (item as Movie).title : (item as TVShow).name}
+                  </h2>
+                  <div className="flex items-center text-sm md:text-base lg:text-lg text-gray-300 font-medium mb-2">
+                    <span>{getReleaseYear(item)}</span>
+                    <span className="mx-2 text-white">·</span>
+                    <span>⭐ {getRating(item)}</span>
+                  </div>
+                  <p className="text-base md:text-lg mb-4 md:mb-6 max-w-2xl line-clamp-2">
+                    {item.overview || "No overview available."}
+                  </p>
+                  <div className="mt-8">
+                    <Link
+                      href={`/${contentType === 'movie' ? 'movies' : 'tv'}/${item.id}`}
+                      className="inline-flex items-center px-6 py-3 md:px-8 md:py-4 bg-accentBlue text-white text-base md:text-lg lg:text-xl font-bold rounded-lg
+                                hover:bg-accentPurple transition-colors duration-300 shadow-xl"
+                    >
+                      Watch Now
+                      <PlayCircleIcon className="ml-2 w-5 h-5 md:ml-3 md:w-6 md:h-6" />
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
           </SwiperSlide>

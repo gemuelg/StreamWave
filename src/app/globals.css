@@ -1,5 +1,4 @@
 /* src/app/globals.css */
-
 /* CORRECT for Tailwind CSS v3.4.1 */
 @tailwind base;
 @tailwind components;
@@ -9,6 +8,9 @@
 html,
 body {
   @apply h-full antialiased;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 body {
@@ -17,16 +19,16 @@ body {
 
 /* Custom Swiper Styles for Pagination */
 .mySwiper .swiper-pagination-bullet-active {
-    background-color: #5d5dff !important; /* Your accent color */
+  background-color: #5d5dff !important; /* Your accent color */
 }
 
 /* Position the pagination dots correctly */
 .mySwiper .swiper-pagination {
-    bottom: 0px !important;
+  bottom: 0px !important;
 }
 
 .mySwiper {
-    padding-bottom: 30px !important; /* Ensure enough space for the dots */
+  padding-bottom: 30px !important; /* Ensure enough space for the dots */
 }
 
 /* Optional: Custom Scrollbar Styles (these were compatible with v3) */
