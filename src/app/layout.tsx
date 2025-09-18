@@ -2,6 +2,7 @@ import './globals.css';
 import { ReactNode } from 'react';
 import Navbar from '@/components/Navbar';
 import AuthListener from '@/components/AuthListener';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata = {
   title: 'StreamWave',
@@ -16,6 +17,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <main>{children}</main>
         <div id="portal-root" />
         <AuthListener />
+        <Analytics />
       </body>
     </html>
   );
