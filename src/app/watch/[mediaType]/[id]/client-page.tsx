@@ -284,7 +284,7 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
   }
 
   return (
-    <div className="relative min-h-screen text-textLight bg-primaryBg overflow-hidden flex flex-col mt-4">
+    <div className="relative min-h-screen text-textLight bg-primaryBg overflow-hidden flex flex-col mt-16">
       <Navbar />
 
       {backdropPath && (
@@ -401,55 +401,55 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
             </div>
           )}
           
-          <div className="mt-4 flex items-center justify-between">
-            {/* Server Buttons on the left */}
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setSelectedServer('multiembed')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-colors
-                                    ${selectedServer === 'multiembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
-                                  `}
-              >
-                <PlayCircleIcon className="w-5 h-5" /> Server 1
-              </button>
-              <button
-                onClick={() => setSelectedServer('hnembed')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-colors
-                                    ${selectedServer === 'hnembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
-                                  `}
-              >
-                <PlayCircleIcon className="w-5 h-5" /> Server 2
-              </button>
-              <button
-                onClick={() => setSelectedServer('videasy')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-colors
-                                    ${selectedServer === 'videasy' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
-                                  `}
-              >
-                <PlayCircleIcon className="w-5 h-5" /> Server 3
-              </button>
-            </div>
+          <div className="mt-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        {/* Server Buttons - Updated for mobile horizontal wrap */}
+                        <div className="flex flex-wrap gap-2 justify-start">
+                            <button
+                                onClick={() => setSelectedServer('multiembed')}
+                                className={`flex items-center gap-2 px-3 py-1 text-sm rounded-xl font-semibold transition-colors
+                                             ${selectedServer === 'multiembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
+                                           `}
+                            >
+                                <PlayCircleIcon className="w-4 h-4" /> Server 1
+                            </button>
+                            <button
+                                onClick={() => setSelectedServer('hnembed')}
+                                className={`flex items-center gap-2 px-3 py-1 text-sm rounded-xl font-semibold transition-colors
+                                             ${selectedServer === 'hnembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
+                                           `}
+                            >
+                                <PlayCircleIcon className="w-4 h-4" /> Server 2
+                            </button>
+                            <button
+                                onClick={() => setSelectedServer('videasy')}
+                                className={`flex items-center gap-2 px-3 py-1 text-sm rounded-xl font-semibold transition-colors
+                                             ${selectedServer === 'videasy' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
+                                           `}
+                            >
+                                <PlayCircleIcon className="w-4 h-4" /> Server 3
+                            </button>
+                        </div>
 
-            {/* Rating on the right */}
-            <div className="flex items-center space-x-2 bg-secondaryBg p-2 rounded-lg">
-              <span className="text-textMuted font-bold">Rate this:</span>
-              <div className="flex space-x-1">
-                {[...Array(5)].map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleRating(i + 1)}
-                    className="text-textMuted hover:text-yellow-500 transition-colors duration-200"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                      <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.908 -1l3.082 -6.25l3.082 6.25l6.908 1l-5 4.867l1.179 6.873z" fill="currentColor"/>
-                    </svg>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+                        {/* Rating - Updated for mobile size */}
+                        <div className="flex items-center space-x-2 bg-secondaryBg p-2 rounded-lg">
+                            <span className="text-textMuted font-bold text-sm">Rate this:</span>
+                            <div className="flex space-x-1">
+                                {[...Array(5)].map((_, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => handleRating(i + 1)}
+                                        className="text-textMuted hover:text-yellow-500 transition-colors duration-200"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                            <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.908 -1l3.082 -6.25l3.082 6.25l6.908 1l-5 4.867l1.179 6.873z" fill="currentColor" />
+                                        </svg>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
         <aside
           className="w-full lg:w-80 order-3 lg:order-3 bg-white/5 backdrop-blur-xl rounded-2xl p-4 border border-white/10"
