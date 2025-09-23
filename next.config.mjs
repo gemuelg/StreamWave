@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    loader: 'custom',
+    loaderFile: './src/lib/tmdb-image-loader.js',
     remotePatterns: [
       {
         protocol: 'https',
