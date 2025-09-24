@@ -16,6 +16,11 @@ export const metadata = {
   },
 };
 
+// =======================================================================
+// AD INJECTION CONSTANTS
+// =======================================================================
+
+// 1. POPUNDER SCRIPT (Zone ID: 5731792) - CORRECTED VERSION
 const popunderScript = `
 (function() {
     function randStr(e,t){for(var n="",r=t||"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",o=0;o<e;o++)n+=r.charAt(Math.floor(Math.random()*r.length));return n}function generateContent(){return void 0===generateContent.val&&(generateContent.val="document.dispatchEvent("+randStr(4*Math.random()+3)+");"),generateContent.val}try{Object.defineProperty(document.currentScript,"innerHTML",{get:generateContent}),Object.defineProperty(document.currentScript,"textContent",{get:generateContent})}catch(e){};
@@ -59,16 +64,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Analytics />
 
         {/* ======================================================= */}
-        {/* 💥 EXOCLICK AD ZONE INTEGRATION START (Corrected) 💥 */}
+        {/* 💥 EXOCLICK AD ZONE INTEGRATION START (FIXED) 💥 */}
         {/* ======================================================= */}
 
-        {/* 1. POPUNDER ZONE (ID: 5731792) - Now correctly escaped */}
+        {/* 1. POPUNDER ZONE (ID: 5731792) */}
         <script
           type="application/javascript"
+          // Injects the corrected Popunder JavaScript as raw HTML
           dangerouslySetInnerHTML={{ __html: popunderScript }}
         />
 
         {/* 2. STICKY BANNER ZONE (ID: 5731732) */}
+        {/* Injecting the necessary CSS for the sticky banner wrapper */}
         <style 
           type="text/css" 
           dangerouslySetInnerHTML={{ __html: stickyBannerCSS }} 
@@ -92,6 +99,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           }}
         />
 
+        {/* ======================================================= */}
+        {/* 💥 EXOCLICK AD ZONE INTEGRATION END 💥 */}
+        {/* ======================================================= */}
+        
       </body>
     </html>
   );
