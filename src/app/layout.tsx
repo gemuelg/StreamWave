@@ -25,6 +25,22 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <div id="portal-root" />
         <AuthListener />
         <Analytics />
+
+        <script async type="application/javascript" src="https://a.magsrv.com/ad-provider.js"></script>
+          
+          
+          <ins 
+            className="eas6a97888e17" 
+            data-zoneid="5731732" 
+            data-keywords="streaming, movies, tv shows, cinema, entertainment, film, game, medicine, games, technology, mobile, ecommerce"
+          ></ins>
+          
+          
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `(AdProvider = window.AdProvider || []).push({"serve": {}});`,
+            }}
+          />
       </body>
     </html>
   );
