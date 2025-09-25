@@ -22,24 +22,33 @@ export async function generateSitemaps() {
 async function fetchChunk(chunkId: number): Promise<any[]> {
     if (!API_KEY) return [];
     
-    // Calculate the range of TMDB pages this chunk is responsible for
+    const mediaType = 'movie'; // Set media type for this specific file
     const startPage = (chunkId - 1) * CHUNK_SIZE + 1;
     const endPage = Math.min(chunkId * CHUNK_SIZE, MAX_PAGES); 
     
-    let allMedia: any[] = [];
-
-    // Loop through only the pages in this chunk (max 10 API calls)
+    // 1. Array to hold all the simultaneous API request promises
+    const fetchPromises = [];
     for (let page = startPage; page <= endPage; page++) {
-        try {
-            const url = `${BASE_URL}/discover/movie?api_key=${API_KEY}&page=${page}&sort_by=popularity.desc`;
-            const response = await axios.get(url);
-            allMedia = allMedia.concat(response.data.results);
-            if (page >= response.data.total_pages) break; // Break if TMDB runs out of pages
-        } catch (error) {
-            console.error(`Failed to fetch movie page ${page} in chunk ${chunkId}:`, error);
-            break; 
-        }
+        const url = `${BASE_URL}/discover/${mediaType}?api_key=${API_KEY}&page=${page}&sort_by=popularity.desc`;
+        
+        // Push the PROMISE for the API call. Use .catch() to prevent Promise.all from failing.
+        fetchPromises.push(axios.get(url).catch(e => {
+            console.error(`[SITEMAP] Failed to fetch movie page ${page} in chunk ${chunkId}:`, e.message);
+            return null; // Return null on error
+        }));
     }
+    
+    // 2. CRITICAL: Await all 10 requests SIMULTANEOUSLY
+    const responses = await Promise.all(fetchPromises);
+    
+    // 3. Filter and combine results
+    let allMedia: any[] = [];
+    responses.forEach(response => {
+        if (response && response.data && response.data.results) {
+            allMedia = allMedia.concat(response.data.results);
+        }
+    });
+
     return allMedia;
 }
 

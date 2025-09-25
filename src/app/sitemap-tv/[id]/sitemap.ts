@@ -29,33 +29,36 @@ export async function generateSitemaps() {
 // --------------------------------------------------------------------------
 // --- 2. fetchChunk: Fetches a small, reliable batch of data (max 10 API calls) ---
 // --------------------------------------------------------------------------
-async function fetchChunk(chunkId: number): Promise<TMDBMedia[]> {
-    if (!API_KEY) {
-        console.error("API_KEY not found in sitemap-tv.ts");
-        return [];
-    }
+async function fetchChunk(chunkId: number): Promise<any[]> {
+    if (!API_KEY) return [];
     
-    // Calculate the range of TMDB pages this chunk is responsible for
+    const mediaType = 'tv'; // Set media type for this specific file
     const startPage = (chunkId - 1) * CHUNK_SIZE + 1;
     const endPage = Math.min(chunkId * CHUNK_SIZE, MAX_PAGES); 
     
-    let allMedia: TMDBMedia[] = [];
-
-    // Loop through only the pages in this chunk (e.g., page 1 to 10 for chunk 1)
+    // 1. Array to hold all the simultaneous API request promises
+    const fetchPromises = [];
     for (let page = startPage; page <= endPage; page++) {
-        try {
-            const url = `${BASE_URL}/discover/tv?api_key=${API_KEY}&page=${page}&sort_by=popularity.desc`;
-            const response = await axios.get(url);
-            
-            allMedia = allMedia.concat(response.data.results);
-            
-            // Break if the TMDB API runs out of pages before we hit MAX_PAGES
-            if (page >= response.data.total_pages) break;
-        } catch (error) {
-            console.error(`Failed to fetch TV show page ${page} in chunk ${chunkId}:`, error);
-            break; // Stop fetching this chunk if one page fails
-        }
+        const url = `${BASE_URL}/discover/${mediaType}?api_key=${API_KEY}&page=${page}&sort_by=popularity.desc`;
+        
+        // Push the PROMISE for the API call. Use .catch() to prevent Promise.all from failing.
+        fetchPromises.push(axios.get(url).catch(e => {
+            console.error(`[SITEMAP] Failed to fetch TV page ${page} in chunk ${chunkId}:`, e.message);
+            return null; // Return null on error
+        }));
     }
+    
+    // 2. CRITICAL: Await all 10 requests SIMULTANEOUSLY
+    const responses = await Promise.all(fetchPromises);
+    
+    // 3. Filter and combine results
+    let allMedia: any[] = [];
+    responses.forEach(response => {
+        if (response && response.data && response.data.results) {
+            allMedia = allMedia.concat(response.data.results);
+        }
+    });
+
     return allMedia;
 }
 
