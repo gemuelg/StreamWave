@@ -45,7 +45,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 {/* The actual container where the ad content will be inserted by the script */}
 <ins 
   className="eas6a97888e17" 
-  data-zoneid="5731732" 
+  data-zoneid="5732108" 
   data-keywords="streaming, movies, tv shows, cinema, entertainment, film, game, medicine, games, technology, mobile, ecommerce"
 ></ins>
 
