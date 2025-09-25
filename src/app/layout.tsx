@@ -9,6 +9,10 @@ import { Analytics } from '@vercel/analytics/next';
 export const metadata = {
   title: 'StreamWave',
   description: 'Your next-generation streaming platform',
+
+  other: {
+    'admaven-placement': 'Bqja8rjkH',
+  },
 };
 
 
