@@ -8,7 +8,7 @@ import axios from 'axios';
 const SITE_URL = 'https://streamwave.xyz'; 
 
 // Use the private environment variable for server-side fetches
-const API_KEY = process.env.TMDB_API_KEY; 
+const API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY; 
 const BASE_URL = 'https://api.themoviedb.org/3';
 // 🚨 Adjust this to list all pages you need indexed. 100 pages = ~2000 URLs. 
 // Go higher if your site is large.
