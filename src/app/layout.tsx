@@ -35,47 +35,29 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AuthListener />
         <Analytics />
 
-        {/* ======================================================= */}
-        {/* 💥 EXOCLICK AD ZONE INTEGRATION START (FIXED) 💥 */}
-        {/* ======================================================= */}
-
-        {/* 1. POPUNDER ZONE (ID: 5731792) */}
-        {/* New method: Loading the script from a file to avoid JSX escaping issues */}
-        <script 
-          type="application/javascript" 
-          src="/scripts/popunder.js" 
-          async 
-        />
-
-        {/* 2. STICKY BANNER ZONE (ID: 5731732) */}
-        {/* Injecting the necessary CSS for the sticky banner wrapper */}
         <style 
-          type="text/css" 
-          dangerouslySetInnerHTML={{ __html: stickyBannerCSS }} 
-        />
-        <div className="tMw15thR" data-uid="tMw15thR"></div>
-        
-        {/* The banner container element */}
-        <ins 
-          className="eas6a97888e17" 
-          data-zoneid="5731732" 
-          data-keywords="streaming, movies, tv shows, cinema, entertainment, film, game, medicine, games, technology, mobile, ecommerce"
-        ></ins>
-        
-        {/* The shared remote script for banner-type ads (Sticky) */}
-        <script async type="application/javascript" src="https://a.magsrv.com/ad-provider.js"></script>
-        
-        {/* The final push command to activate the sticky banner */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(AdProvider = window.AdProvider || []).push({"serve": {}});`,
-          }}
-        />
+  type="text/css" 
+  dangerouslySetInnerHTML={{ __html: stickyBannerCSS }} 
+/>
+<div className="tMw15thR" data-uid="tMw15thR"></div> 
+{/* Use cm6Q0n8N if the ad network gave you a new class name */}
 
-        {/* ======================================================= */}
-        {/* 💥 EXOCLICK AD ZONE INTEGRATION END 💥 */}
-        {/* ======================================================= */}
-        
+{/* The actual container where the ad content will be inserted by the script */}
+<ins 
+  className="eas6a97888e17" 
+  data-zoneid="5731732" 
+  data-keywords="streaming, movies, tv shows, cinema, entertainment, film, game, medicine, games, technology, mobile, ecommerce"
+></ins>
+
+{/* The shared remote script for banner-type ads (Sticky) */}
+<script async type="application/javascript" src="https://a.magsrv.com/ad-provider.js"></script>
+
+{/* The final push command to activate the sticky banner */}
+<script
+  dangerouslySetInnerHTML={{
+    __html: `(AdProvider = window.AdProvider || []).push({"serve": {}});`,
+  }}
+/>
       </body>
     </html>
   );
