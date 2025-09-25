@@ -32,6 +32,8 @@ const stickyPlacementCSS = `
       
       /* Position at the very bottom */
       bottom: 0px !important;
+
+      top: auto !important; 
       
       /* Move the box 50% from the left edge */
       left: 50% !important;
