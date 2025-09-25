@@ -11,7 +11,7 @@
     "popup_force": true,
     "chrome_enabled": true,
     "new_tab": true,
-    "frequency_period": 5,
+    "frequency_period": 4,
     "frequency_count": 2,
     "trigger_method": 1,
     "trigger_class": "",
