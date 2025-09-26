@@ -1,21 +1,19 @@
-// src/app/sitemap.ts (Sitemap Index File)
+// src/app/sitemap.ts (Fixed Sitemap Index File)
 
 import { MetadataRoute } from 'next';
 
 const SITE_URL = 'https://streamwave.xyz'; 
 const today = new Date().toISOString().split('T')[0];
 
-// You now need to point to the dynamic paths Next.js creates:
-// /sitemap-movies/1.xml, /sitemap-movies/2.xml, etc.
-const totalMovieSitemaps = 10; // Must match the NUM_CHUNKS from sitemap-movies.ts
+// **FIXED: Removed the '.xml' extension from the URLs**
+const totalMovieSitemaps = 25; // Use the scaled value from the last fix
 const movieSitemapUrls = Array.from({ length: totalMovieSitemaps }, (_, i) => ({
-    url: `${SITE_URL}/sitemap-movies/${i + 1}.xml`,
+    url: `${SITE_URL}/sitemap-movies/${i + 1}`, // <-- THIS IS THE CRITICAL CHANGE
 }));
 
-// Do the same for TV shows (assuming you implement sitemap-tv.ts with the same logic)
-const totalTvSitemaps = 10;
+const totalTvSitemaps = 25; // Use the scaled value from the last fix
 const tvSitemapUrls = Array.from({ length: totalTvSitemaps }, (_, i) => ({
-    url: `${SITE_URL}/sitemap-tv/${i + 1}.xml`,
+    url: `${SITE_URL}/sitemap-tv/${i + 1}`, // <-- THIS IS THE CRITICAL CHANGE
 }));
 
 export default function sitemap(): MetadataRoute.Sitemap {
