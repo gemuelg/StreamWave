@@ -1,54 +1,40 @@
 // src/components/MovieDetailContent.tsx
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react'; // ADD useMemo here
+// REMOVE: useState, useEffect, useMemo
+import React from 'react'; 
 import Image from 'next/image';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+// REMOVE: notFound (not used in client component)
 import Navbar from '@/components/Navbar';
-// IMPORT getMovieGenres and Genre
-import { getImageUrl, getYouTubeWatchUrl, MovieDetails, Movie, TVShow, CastMember, CrewMember, getMovieGenres, Genre } from '@/lib/tmdb';
+// REMOVE: getMovieGenres (only need types and other helpers)
+import { getImageUrl, getYouTubeWatchUrl, MovieDetails, Movie, CastMember, CrewMember, Genre } from '@/lib/tmdb';
 import MovieCard from '@/components/MovieCard';
 import { ClockIcon, StarIcon, UserIcon, PlayCircleIcon } from '@heroicons/react/24/outline';
 
 interface MovieDetailContentProps {
-  movie: MovieDetails;
-  videoKey: string | null;
-  recommendations: Movie[];
-  director: CrewMember | undefined;
-  writers: CrewMember[] | undefined;
-  cast: CastMember[] | undefined;
+  movie: MovieDetails;
+  videoKey: string | null;
+  recommendations: Movie[];
+  director: CrewMember | undefined;
+  writers: CrewMember[] | undefined;
+  cast: CastMember[] | undefined;
+  genresMap: Map<number, string>; // <-- ADD genresMap prop
 }
 
 export default function MovieDetailContent({
-  movie,
-  videoKey,
-  recommendations,
-  director,
-  writers,
-  cast,
+  movie,
+  videoKey,
+  recommendations,
+  director,
+  writers,
+  cast,
+  genresMap, // <-- DESTRUCTURE genresMap
 }: MovieDetailContentProps) {
-  // --- ADD STATE FOR GENRES
-  const [genres, setGenres] = useState<Genre[]>([]);
-
-  // --- USEEFFECT TO FETCH GENRES ONCE
-  useEffect(() => {
-    const fetchGenres = async () => {
-      try {
-        const movieGenres = await getMovieGenres();
-        setGenres(movieGenres);
-      } catch (err) {
-        console.error("Failed to fetch movie genres:", err);
-      }
-    };
-    fetchGenres();
-  }, []);
-
-  // --- CREATE A MEMOIZED MAP FROM THE GENRES
-  const genresMap = useMemo(() => {
-    return new Map(genres.map(genre => [genre.id, genre.name]));
-  }, [genres]);
-  
+  // --- REMOVE ALL client-side genre logic (useState, useEffect, useMemo) ---
+  // const [genres, setGenres] = useState<Genre[]>([]);
+  // useEffect(() => { /* ... */ }, []);
+  // const genresMap = useMemo(() => { /* ... */ }, [genres]);
   // Helper for rendering a person's card
   const renderPersonCard = (person: { id: number, name: string, profile_path?: string | null, character?: string, job?: string }) => (
     <div key={person.id} className="flex-shrink-0 w-24 sm:w-32 text-center">
