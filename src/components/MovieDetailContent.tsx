@@ -71,7 +71,50 @@ export default function MovieDetailContent({
       {person.job && <p className="text-xs text-textMuted truncate">{person.job}</p>}
     </div>
   );
-
+ // --- 1. CONSTRUCT MOVIE SCHEMA OBJECT ---
+  const movieSchema = {
+    "@context": "http://schema.org",
+    "@type": "Movie",
+    "name": movie.title,
+    "url": `https://www.streamwave.xyz/movies/${movie.id}`, // IMPORTANT: Change yourdomain.com
+    "image": getImageUrl(movie.poster_path, 'w500'),
+    "dateCreated": movie.release_date,
+    "duration": movie.runtime ? `PT${movie.runtime}M` : undefined, // Format: PT[minutes]M
+    "description": movie.overview,
+    "genre": movie.genres.map(g => g.name),
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": movie.vote_average.toFixed(1),
+      "reviewCount": movie.vote_count,
+    },
+    // Director
+    "director": director ? { "@type": "Person", "name": director.name } : undefined,
+    // Cast (Actors)
+    "actor": cast?.map(member => ({ "@type": "Person", "name": member.name })) || [],
+    // Trailer Link
+    ...(videoKey && {
+      "trailer": {
+        "@type": "VideoObject",
+        "name": `Trailer for ${movie.title}`,
+        "embedUrl": getYouTubeWatchUrl(videoKey).replace('watch?v=', 'embed/'),
+        "thumbnailUrl": `https://img.youtube.com/vi/${videoKey}/hqdefault.jpg`,
+        "uploadDate": movie.release_date,
+      }
+    }),
+    // Provide a URL for streaming/purchase, signaling it's available
+    "potentialAction": {
+      "@type": "WatchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "url": `https://www.streamwave.xyz/watch/movie/${movie.id}`, // IMPORTANT: Change yourdomain.com
+        "inLanguage": "en",
+        "actionPlatform": [
+          "http://schema.org/DesktopWebPlatform",
+          "http://schema.org/MobileWebPlatform"
+        ]
+      }
+    }
+  };
   return (
     <div className="min-h-screen bg-primaryBg text-textLight">
       <Navbar />

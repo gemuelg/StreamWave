@@ -69,6 +69,42 @@ export default function TVShowDetailContent({
     </div>
   );
 
+// --- 1. CONSTRUCT TV SERIES SCHEMA OBJECT ---
+  const tvSchema = {
+    "@context": "http://schema.org",
+    "@type": "TVSeries",
+    "name": tvShow.name,
+    "url": `https://www.streamwave.xyz/tv/${tvShow.id}`, // IMPORTANT: Change yourdomain.com
+    "image": getImageUrl(tvShow.poster_path, 'w500'),
+    "description": tvShow.overview,
+    "genre": tvShow.genres.map(g => g.name),
+    "numberOfSeasons": tvShow.number_of_seasons,
+    "numberOfEpisodes": tvShow.number_of_episodes,
+    "datePublished": tvShow.first_air_date,
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": tvShow.vote_average.toFixed(1),
+      "reviewCount": tvShow.vote_count,
+    },
+    // Creators
+    "creator": creators?.map(member => ({ "@type": "Person", "name": member.name })) || [],
+    // Cast (Actors)
+    "actor": cast?.map(member => ({ "@type": "Person", "name": member.name })) || [],
+    // Provider/Streaming Availability
+    "potentialAction": {
+      "@type": "WatchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "url": `https://www.streamwave.xyz/watch/tv/${tvShow.id}`, // IMPORTANT: Change yourdomain.com
+        "inLanguage": "en",
+        "actionPlatform": [
+          "http://schema.org/DesktopWebPlatform",
+          "http://schema.org/MobileWebPlatform"
+        ]
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-primaryBg text-textLight">
       <Navbar />
