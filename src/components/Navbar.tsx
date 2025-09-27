@@ -90,8 +90,8 @@ const Navbar: React.FC = () => {
     const username = user?.user_metadata?.username;
 
     return (
-        <header className="fixed top-0 left-0 w-full bg-primaryBg bg-opacity-70 backdrop-blur-lg z-50 shadow-2xl">
-            <nav className="px-4 py-4 flex items-center justify-between">
+        <header className="fixed top-0 left-0 w-full bg-primaryBg bg-opacity-70 backdrop-blur-lg z-50 shadow-2xl" role="banner">
+            <nav className="px-4 py-4 flex items-center justify-between" aria-label="Main navigation links">
                 <Link href="/" className="flex items-center space-x-1 hover:opacity-80 transition-opacity" onClick={closeMenu}>
                     <span className="text-2xl font-extrabold text-textLight">Stream</span>
                     <span className="text-2xl font-light text-accentBlue">Wave</span>
@@ -111,7 +111,7 @@ const Navbar: React.FC = () => {
                     </div>
                     
                     <div className="flex items-center gap-6 lg:gap-8 xl:gap-10">
-                        <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+                        <form onSubmit={handleSearchSubmit} className="relative flex items-center" role="search">
                             <input
                                 type="text"
                                 placeholder="Search movies, TV shows..."
@@ -125,7 +125,7 @@ const Navbar: React.FC = () => {
                                 type="submit"
                                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-textMuted hover:text-accentBlue
                                              focus:outline-none focus:ring-2 focus:ring-accentBlue rounded-full"
-                                aria-label="Search"
+                                aria-label="Submit search query"
                             >
                                 <MagnifyingGlassIcon className="h-5 w-5" />
                             </button>
@@ -136,6 +136,7 @@ const Navbar: React.FC = () => {
                             disabled={isRandomLoading}
                             className={`p-2 rounded-full transition-colors duration-300 ${isRandomLoading ? 'text-textMuted animate-pulse' : 'text-textLight hover:text-accentBlue'}`}
                             title="Go to a random movie or TV show"
+                            aria-label="Discover a Random Movie or TV Show"
                         >
                             <ArrowPathIcon className="h-6 w-6" />
                         </button>

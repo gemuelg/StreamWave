@@ -6,10 +6,35 @@ import Navbar from '@/components/Navbar';
 import AuthListener from '@/components/AuthListener';
 import { Analytics } from '@vercel/analytics/next';
 
-export const metadata = {
-  title: 'StreamWave',
-  description: 'Your next-generation streaming platform',
+// 🚨 ACTION REQUIRED: Replace with your actual live domain URL
+const BASE_URL = 'https://www.streamwave.com'; 
 
+export const metadata = {
+  // 1. BASE URL (CRITICAL FOR ABSOLUTE PATHS)
+  metadataBase: new URL(BASE_URL),
+  
+  // 2. CORE SEO
+  title: {
+    default: 'StreamWave - Your Next-Generation Streaming Platform', 
+    template: '%s | StreamWave', 
+  },
+  description: 'StreamWave is your next-generation platform for discovering the latest and greatest movies and TV shows. Explore, search, and manage your personalized watchlist for a seamless entertainment experience.',
+  applicationName: 'StreamWave',
+  keywords: ['streaming platform', 'movie database', 'TV shows', 'watchlist', 'discover movies', 'latest trailers'],
+
+  // 3. CANONICAL & ROBOTS (SEO-BEST PRACTICE FILES)
+  alternates: {
+    // This sets the base canonical URL for the homepage
+    canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
   other: {
     'admaven-placement': 'Bqja8rjkH',
   },

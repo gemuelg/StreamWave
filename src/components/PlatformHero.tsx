@@ -79,9 +79,9 @@ export default function PlatformHero({ content }: PlatformHeroProps) {
             </div>
             <div className="relative z-10 flex items-end w-full h-full p-6 md:p-12 text-white justify-end">
               <div className="w-full max-w-2xl text-right">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-3 drop-shadow-lg">
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-3 drop-shadow-lg">
                   {getTitle(item)}
-                </h1>
+                </h2>
                 
                 <div className="flex items-center space-x-4 mb-4 text-lg drop-shadow-md justify-end">
                   {getReleaseYear(item) && <span className="font-semibold">{getReleaseYear(item)}</span>}
