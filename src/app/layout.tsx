@@ -7,7 +7,7 @@ import AuthListener from '@/components/AuthListener';
 import { Analytics } from '@vercel/analytics/next';
 
 // 🚨 ACTION REQUIRED: Replace with your actual live domain URL
-const BASE_URL = 'https://www.streamwave.com'; 
+const BASE_URL = 'https://www.streamwave.xyz'; 
 
 export const metadata = {
   // 1. BASE URL (CRITICAL FOR ABSOLUTE PATHS)
@@ -22,11 +22,7 @@ export const metadata = {
   applicationName: 'StreamWave',
   keywords: ['streaming platform', 'movie database', 'TV shows', 'watchlist', 'discover movies', 'latest trailers'],
 
-  // 3. CANONICAL & ROBOTS (SEO-BEST PRACTICE FILES)
-  alternates: {
-    // This sets the base canonical URL for the homepage
-    canonical: '/',
-  },
+  
   robots: {
     index: true,
     follow: true,
