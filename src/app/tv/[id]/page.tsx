@@ -1,16 +1,18 @@
 // src/app/tv/[id]/page.tsx
 import { notFound } from 'next/navigation';
-import { getTVShowDetails, getPrimaryVideoKey, getTVShowRecommendations, CrewMember, CastMember } from '@/lib/tmdb';
+// ADD getTVGenres and Genre to imports
+import { getTVShowDetails, getPrimaryVideoKey, getTVShowRecommendations, CrewMember, CastMember, getTVGenres, Genre } from '@/lib/tmdb';
 import TVShowDetailContent from '@/components/TVShowDetailContent';
+import { Metadata } from 'next'; // Import Metadata type for clarity
 
 // Set up dynamic metadata
-export async function generateMetadata({ params }: { params: { id: string } }) {
-  const tvShow = await getTVShowDetails(Number(params.id));
-  if (!tvShow) {
-    return {
-      title: 'TV Show Not Found',
-    };
-  }
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const tvShow = await getTVShowDetails(Number(params.id));
+  if (!tvShow) {
+    return {
+      title: 'TV Show Not Found - StreamWave', // Added brand for SEO consistency
+    };
+  }
 // 1. CREATE UNIQUE TITLE TEMPLATE
   const uniqueTitle = `${tvShow.name} - Seasons, Episodes & Details on StreamWave`;
 
@@ -41,26 +43,35 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
 
 
 export default async function TVShowDetailsPage({ params }: { params: { id: string } }) {
-  const id = Number(params.id);
-  const tvShow = await getTVShowDetails(id);
+  const id = Number(params.id);
+  
+  // 1. USE PROMISE.ALL TO FETCH ALL DATA ON THE SERVER
+  const [tvShow, recommendations, allGenres] = await Promise.all([
+    getTVShowDetails(id),
+    getTVShowRecommendations(id),
+    getTVGenres(), // <-- FETCH TV GENRES HERE (MOVED FROM CLIENT COMPONENT)
+  ]);
 
-  if (!tvShow) {
-    notFound();
-  }
+  if (!tvShow) {
+    notFound();
+  }
 
-  const videoKey = getPrimaryVideoKey(tvShow.videos || null);
-  const recommendations = await getTVShowRecommendations(id);
+  const videoKey = getPrimaryVideoKey(tvShow.videos || null);
 
-  const creators = tvShow.credits?.crew?.filter((member: CrewMember) => member.job === 'Creator' && member.profile_path);
-  const cast = tvShow.credits?.cast?.filter((member: CastMember) => member.profile_path).slice(0, 10);
+  // 2. CREATE GENRE MAP ON THE SERVER TO AVOID CLIENT-SIDE STATE/EFFECTS
+  const genresMap = new Map(allGenres.map((genre: Genre) => [genre.id, genre.name]));
 
-  return (
-    <TVShowDetailContent
-      tvShow={tvShow}
-      videoKey={videoKey}
-      recommendations={recommendations}
-      creators={creators}
-      cast={cast}
-    />
-  );
+  const creators = tvShow.credits?.crew?.filter((member: CrewMember) => member.job === 'Creator' && member.profile_path);
+  const cast = tvShow.credits?.cast?.filter((member: CastMember) => member.profile_path).slice(0, 10);
+
+  return (
+    <TVShowDetailContent
+      tvShow={tvShow}
+      videoKey={videoKey}
+      recommendations={recommendations}
+      creators={creators}
+      cast={cast}
+      genresMap={genresMap} // <-- 3. PASS THE MAP DOWN AS A PROP
+    />
+  );
 }

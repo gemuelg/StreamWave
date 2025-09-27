@@ -1,80 +1,70 @@
 // src/components/TVShowDetailContent.tsx
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react'; // ADD useMemo here
+// REMOVED: useState, useEffect, useMemo
+// REMOVED: getTVGenres from imports (it is only used on the server now)
+import React from 'react'; 
 import Image from 'next/image';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
-// IMPORT getTVGenres and Genre
-import { getImageUrl, getYouTubeWatchUrl, TVShowDetails, TVShow, CastMember, CrewMember, getTVGenres, Genre } from '@/lib/tmdb';
+import { getImageUrl, getYouTubeWatchUrl, TVShowDetails, TVShow, CastMember, CrewMember, Genre } from '@/lib/tmdb';
 import MovieCard from '@/components/MovieCard';
 import { ClockIcon, StarIcon, UserIcon, PlayCircleIcon } from '@heroicons/react/24/outline';
 
 interface TVShowDetailContentProps {
-  tvShow: TVShowDetails;
-  videoKey: string | null;
-  recommendations: TVShow[];
-  creators: CrewMember[] | undefined;
-  cast: CastMember[] | undefined;
+  tvShow: TVShowDetails;
+  videoKey: string | null;
+  recommendations: TVShow[];
+  creators: CrewMember[] | undefined;
+  cast: CastMember[] | undefined;
+  // ADDED: genresMap prop to receive data from the Server Component
+  genresMap: Map<number, string>;
 }
 
 export default function TVShowDetailContent({
-  tvShow,
-  videoKey,
-  recommendations,
-  creators,
-  cast,
+  tvShow,
+  videoKey,
+  recommendations,
+  creators,
+  cast,
+  genresMap, // DESTRUCTURE genresMap
 }: TVShowDetailContentProps) {
-  // --- ADD STATE FOR GENRES
-  const [genres, setGenres] = useState<Genre[]>([]);
+  
+  // --- REMOVED THE FOLLOWING BLOCK TO FIX REACT ERROR #425 ---
+  // const [genres, setGenres] = useState<Genre[]>([]);
+  // useEffect(() => { /* ... */ }, []);
+  // const genresMap = useMemo(() => { /* ... */ }, [genres]);
+  // -----------------------------------------------------------
+  
+  // Helper for rendering a person's card (kept the same)
+  const renderPersonCard = (person: { id: number, name: string, profile_path?: string | null, character?: string, job?: string }) => (
+    <div key={person.id} className="flex-shrink-0 w-24 sm:w-32 text-center">
+      <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden mx-auto bg-secondaryBg flex items-center justify-center">
+        {person.profile_path ? (
+          <Image
+            src={getImageUrl(person.profile_path, 'w185')}
+            alt={person.name}
+            width={128}
+            height={128}
+            className="object-cover w-full h-full"
+            priority={false}
+          />
+        ) : (
+          <UserIcon className="h-16 w-16 text-textMuted" />
+        )}
+      </div>
+      <p className="mt-2 text-sm font-semibold truncate">{person.name}</p>
+      {person.character && <p className="text-xs text-textMuted truncate">{person.character}</p>}
+      {person.job && <p className="text-xs text-textMuted truncate">{person.job}</p>}
+    </div>
+  );
 
-  // --- USEEFFECT TO FETCH GENRES ONCE
-  useEffect(() => {
-    const fetchGenres = async () => {
-      try {
-        const tvGenres = await getTVGenres(); // Fetch TV genres
-        setGenres(tvGenres);
-      } catch (err) {
-        console.error("Failed to fetch TV genres:", err);
-      }
-    };
-    fetchGenres();
-  }, []);
-
-  // --- CREATE A MEMOIZED MAP FROM THE GENRES
-  const genresMap = useMemo(() => {
-    return new Map(genres.map(genre => [genre.id, genre.name]));
-  }, [genres]);
-  
-  // Helper for rendering a person's card
-  const renderPersonCard = (person: { id: number, name: string, profile_path?: string | null, character?: string, job?: string }) => (
-    <div key={person.id} className="flex-shrink-0 w-24 sm:w-32 text-center">
-      <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden mx-auto bg-secondaryBg flex items-center justify-center">
-        {person.profile_path ? (
-          <Image
-            src={getImageUrl(person.profile_path, 'w185')}
-            alt={person.name}
-            width={128}
-            height={128}
-            className="object-cover w-full h-full"
-            priority={false}
-          />
-        ) : (
-          <UserIcon className="h-16 w-16 text-textMuted" />
-        )}
-      </div>
-      <p className="mt-2 text-sm font-semibold truncate">{person.name}</p>
-      {person.character && <p className="text-xs text-textMuted truncate">{person.character}</p>}
-      {person.job && <p className="text-xs text-textMuted truncate">{person.job}</p>}
-    </div>
-  );
-
-// --- 1. CONSTRUCT TV SERIES SCHEMA OBJECT ---
+// --- 1. CONSTRUCT TV SERIES SCHEMA OBJECT (Keep the same) ---
   const tvSchema = {
     "@context": "http://schema.org",
     "@type": "TVSeries",
     "name": tvShow.name,
-    "url": `https://www.streamwave.xyz/tv/${tvShow.id}`, // IMPORTANT: Change yourdomain.com
+    "url": `https://www.streamwave.xyz/tv/${tvShow.id}`, 
     "image": getImageUrl(tvShow.poster_path, 'w500'),
     "description": tvShow.overview,
     "genre": tvShow.genres.map(g => g.name),
@@ -95,7 +85,7 @@ export default function TVShowDetailContent({
       "@type": "WatchAction",
       "target": {
         "@type": "EntryPoint",
-        "url": `https://www.streamwave.xyz/watch/tv/${tvShow.id}`, // IMPORTANT: Change yourdomain.com
+        "url": `https://www.streamwave.xyz/watch/tv/${tvShow.id}`, 
         "inLanguage": "en",
         "actionPlatform": [
           "http://schema.org/DesktopWebPlatform",
