@@ -99,7 +99,7 @@ const Navbar: React.FC = () => {
                 
                 <div className="hidden min-[927px]:flex items-center justify-between flex-1 pl-12 pr-4">
                     <div className="flex items-center gap-6 lg:gap-8 xl:gap-10">
-                        <Link href="/" className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold">
+                        <Link href="/home" className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold">
                             Home
                         </Link>
                         <Link href="/movies" className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold">
@@ -249,7 +249,7 @@ const Navbar: React.FC = () => {
                             <MagnifyingGlassIcon className="h-5 w-5" />
                         </button>
                     </form>
-                    <Link href="/" onClick={closeMenu} className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold w-full text-center py-2">
+                    <Link href="/home" onClick={closeMenu} className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold w-full text-center py-2">
                         Home
                     </Link>
                     <Link href="/movies" onClick={closeMenu} className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold w-full text-center py-2">
