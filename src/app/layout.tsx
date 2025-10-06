@@ -40,6 +40,9 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <script data-cfasync="false" src="//dcbbwymp1bhlf.cloudfront.net/?wbbcd=1216759"></script>
+      </head>
       <body>
         <Navbar />
         <main>{children}</main>
