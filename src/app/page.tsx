@@ -1,305 +1,138 @@
-import {
-  getTrendingMovies,
-  getNowPlayingMovies,
-  getTrendingTVShows,
-  getOnTheAirTVShows,
-  discoverContent,
-  getMovieGenres,
-  getTVShowGenres,
-  WATCH_PROVIDER_IDS,
-  Genre,
-  Movie,
-  TVShow,
-} from '@/lib/tmdb';
-import HomeContent from '@/components/HomeContent';
-import { redirect } from 'next/navigation';
-import axios from 'axios';
-import { createServerSupabaseClient } from '@/lib/supabase-server';
+// src/app/page.tsx
 
-// Interfaces for data fetching
-interface TMDBMedia {
-  id: number;
-  title?: string;
-  name?: string;
-  poster_path: string;
-  media_type: 'movie' | 'tv';
-  overview: string;
-  backdrop_path: string | null;
-  vote_average: number;
-  vote_count: number;
-  genre_ids: number[];
-  release_date?: string;
-  first_air_date?: string;
-}
+import Link from 'next/link';
+import { Metadata } from 'next';
+import { getTrendingMovies, getTrendingTVShows, Movie, TVShow } from '@/lib/tmdb';
 
-// Interface for user interests from Supabase
-interface UserInterest {
-  interest_id: number;
-  interest_type: 'genre' | 'movie' | 'tv';
-}
-
-const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
-
-const filterReleasedContent = <T extends Movie | TVShow>(content: T[]): T[] => {
-  const today = new Date();
-  return content.filter(item => {
-    if ('release_date' in item) {
-      return new Date(item.release_date) <= today;
-    }
-    if ('first_air_date' in item) {
-      return new Date(item.first_air_date) <= today;
-    }
-    return true;
-  }) as T[];
-};
-
-const fetchPersonalizedContent = async (supabase: any, user: any) => {
-  if (!user) {
-    console.log("No user found. Skipping personalized content fetch.");
-    return { forYouMedia: [], onboardingComplete: false };
-  }
-
-  const { data: interests, error } = await supabase
-    .from('user_interests')
-    .select('interest_id, interest_type')
-    .eq('user_id', user.id);
-
-  if (error) {
-    console.error("Supabase query failed to fetch user interests:", error);
-    return { forYouMedia: [], onboardingComplete: false };
-  }
-
-  if (!interests || interests.length === 0) {
-    console.log("No user interests found in the database. Onboarding may not be complete.");
-    return { forYouMedia: [], onboardingComplete: false };
-  }
-
-  console.log("Successfully fetched user interests:", interests);
-
-  // Type the interests array to resolve TypeScript errors
-  const typedInterests: UserInterest[] = interests;
-
-  const genreIds = typedInterests
-    .filter(item => item.interest_type === 'genre')
-    .map(item => item.interest_id);
-  
-  const specificTitles = typedInterests
-    .filter(item => item.interest_type === 'movie' || item.interest_type === 'tv');
-  
-  let allRecommendations: TMDBMedia[] = [];
-
+// --- DYNAMIC DATA FETCHING & FORMATTING (NO CHANGE) ---
+async function getDynamicTitles() {
   try {
-    if (genreIds.length > 0) {
-      console.log("Fetching genre recommendations for IDs:", genreIds);
-      const res = await axios.get(
-        `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreIds.join(',')}&sort_by=popularity.desc&vote_count.gte=20`
-      );
-      const genreRecommendations = res.data.results.map((item: any) => ({ ...item, media_type: 'movie' }));
-      allRecommendations.push(...genreRecommendations);
-      console.log(`Found ${genreRecommendations.length} genre-based recommendations.`);
+    const [moviesResponse, tvShowsResponse] = await Promise.all([
+      getTrendingMovies(),
+      getTrendingTVShows(),
+    ]);
+
+    const combinedResults = [
+      ...moviesResponse.results.map((item: Movie) => ({ title: item.title, popularity: item.popularity })),
+      ...tvShowsResponse.results.map((item: TVShow) => ({ title: item.name, popularity: item.popularity })),
+    ];
+
+    const sortedTitles = combinedResults
+      .sort((a, b) => b.popularity - a.popularity)
+      .map(item => item.title)
+      .slice(0, 5);
+
+    if (sortedTitles.length === 0) {
+      return {
+        heroText: 'new releases and popular titles added daily',
+        seoTitleSuffix: '',
+      };
     }
 
-    if (specificTitles.length > 0) {
-      console.log("Fetching recommendations for specific titles:", specificTitles);
-      const titlePromises = specificTitles.map(async (item) => {
-        const res = await axios.get(
-          `https://api.themoviedb.org/3/${item.interest_type}/${item.interest_id}/recommendations?api_key=${TMDB_API_KEY}`
-        );
-        // Explicitly type the result of the map function
-        return res.data.results.map((rec: TMDBMedia) => ({ ...rec, media_type: item.interest_type }));
-      });
-      const titleRecommendations = (await Promise.all(titlePromises)).flat();
-      allRecommendations.push(...titleRecommendations);
-      console.log(`Found ${titleRecommendations.length} title-based recommendations.`);
-    }
+    const titlesForHero = sortedTitles.slice(0);
+    const last = titlesForHero.pop();
+    const heroText = titlesForHero.join(', ') + (titlesForHero.length > 0 ? `, and ${last}` : last);
 
-    const uniqueRecommendations = Array.from(new Map(allRecommendations.map((item: TMDBMedia) => [item.id, item])).values());
-    
-    const validRecommendations: (Movie | TVShow)[] = uniqueRecommendations.filter(item => {
-      return item.poster_path && (item.title || item.name);
-    }) as (Movie | TVShow)[];
-    
-    // LIMIT THE RECOMMENDATIONS TO 20
-    const limitedRecommendations = validRecommendations.slice(0, 20);
+    const titlesForSeo = sortedTitles.slice(0, 2);
+    const seoTitleSuffix = titlesForSeo.length > 0
+      ? ` | Featuring: ${titlesForSeo.join(' & ')}`
+      : '';
 
-    console.log("Final number of personalized recommendations found:", limitedRecommendations.length);
-
+    return { heroText, seoTitleSuffix };
+  } catch (error) {
+    console.error("Error fetching trending titles from TMDB:", error);
     return {
-      forYouMedia: limitedRecommendations,
-      onboardingComplete: true
-    };
-
-  } catch (err) {
-    console.error("Failed to fetch personalized recommendations from TMDB:", err);
-    return {
-      forYouMedia: [],
-      onboardingComplete: true
+      heroText: 'new releases and popular titles added daily',
+      seoTitleSuffix: '',
     };
   }
+}
+
+const featuredTitles = await getDynamicTitles();
+const dynamicTitleSuffix = featuredTitles.seoTitleSuffix;
+
+// --- METADATA ---
+export const metadata: Metadata = {
+  title: `Watch Free Movies Online & TV Shows in HD | StreamWave${dynamicTitleSuffix}`,
+  description: 'StreamWave is the completely free, ad-free platform for high-quality movies and TV shows. No registration needed. Find action, comedy, horror, and more, all in HD. The best place to stream movies and TV shows online.',
+  keywords: ['free movies', 'watch movies online', 'free TV shows', 'streamwave', 'ad-free streaming', 'HD movies online', 'free entertainment', 'stream TV'],
+  openGraph: {
+    title: `Watch Free Movies Online & TV Shows in HD | StreamWave${dynamicTitleSuffix}`,
+    description: 'StreamWave is the completely free, ad-free platform for high-quality movies and TV shows. No registration needed.',
+    url: 'https://www.streamwave.xyz/',
+    siteName: 'StreamWave',
+    type: 'website',
+  },
 };
 
-export default async function HomePage() {
-  const supabase = createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  console.log("Current user:", user);
-
-  if (user) {
-    const { forYouMedia, onboardingComplete } = await fetchPersonalizedContent(supabase, user);
-    if (!onboardingComplete) {
-      redirect('/onboarding/step1');
-    }
-    const [
-      trendingMoviesData,
-      nowPlayingMoviesData,
-      trendingTVShowsData,
-      onTheAirTVShowsData,
-      movieGenresData,
-      tvGenresData,
-      netflixMoviesData,
-      disneyPlusMoviesData,
-      amazonPrimeMoviesData,
-      hboMaxMoviesData,
-      huluMoviesData,
-      huluLatestTVShowsData,
-      amazonLatestTVShowsData,
-      hboLatestTVShowsData,
-      netflixLatestTVShowsData,
-      disneyPlusTVShowsData,
-    ] = await Promise.all([
-      getTrendingMovies(),
-      getNowPlayingMovies(),
-      getTrendingTVShows(),
-      getOnTheAirTVShows(),
-      getMovieGenres(),
-      getTVShowGenres(),
-      discoverContent<Movie>('movie', 1, [WATCH_PROVIDER_IDS.NETFLIX], 'release_date.desc'),
-      discoverContent<Movie>('movie', 1, [WATCH_PROVIDER_IDS.DISNEY_PLUS], 'release_date.desc'),
-      discoverContent<Movie>('movie', 1, [WATCH_PROVIDER_IDS.AMAZON_PRIME_VIDEO], 'release_date.desc'),
-      discoverContent<Movie>('movie', 1, [WATCH_PROVIDER_IDS.MAX], 'release_date.desc'),
-      discoverContent<Movie>('movie', 1, [WATCH_PROVIDER_IDS.HULU], 'release_date.desc'),
-      discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.HULU], 'first_air_date.desc'),
-      discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.AMAZON_PRIME_VIDEO], 'first_air_date.desc'),
-      discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.MAX], 'first_air_date.desc'),
-      discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.NETFLIX], 'first_air_date.desc'),
-      discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.DISNEY_PLUS], 'first_air_date.desc'),
-    ]);
-
-    const [
-      huluPopular,
-      amazonPopular,
-      hboPopular,
-      netflixPopular,
-    ] = await Promise.all([
-      huluLatestTVShowsData?.results.length === 0 ? discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.HULU], 'popularity.desc') : Promise.resolve(null),
-      amazonLatestTVShowsData?.results.length === 0 ? discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.AMAZON_PRIME_VIDEO], 'popularity.desc') : Promise.resolve(null),
-      hboLatestTVShowsData?.results.length === 0 ? discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.MAX], 'popularity.desc') : Promise.resolve(null),
-      netflixLatestTVShowsData?.results.length === 0 ? discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.NETFLIX], 'popularity.desc') : Promise.resolve(null),
-    ]);
-    
-    const finalHuluTVShows = huluLatestTVShowsData?.results.length ? huluLatestTVShowsData : huluPopular;
-    const finalAmazonTVShows = amazonLatestTVShowsData?.results.length ? amazonLatestTVShowsData : amazonPopular;
-    const finalHboTVShows = hboLatestTVShowsData?.results.length ? hboLatestTVShowsData : hboPopular;
-    const finalNetflixTVShows = netflixLatestTVShowsData?.results.length ? netflixLatestTVShowsData : netflixPopular;
-
-    const allGenres: Genre[] = [...(movieGenresData || []), ...(tvGenresData || [])];
-
-    return (
-      <HomeContent
-        trendingMovies={filterReleasedContent(trendingMoviesData?.results || [])}
-        nowPlayingMovies={filterReleasedContent(nowPlayingMoviesData?.results || [])}
-        trendingTVShows={filterReleasedContent(trendingTVShowsData?.results || [])}
-        onTheAirTVShows={filterReleasedContent(onTheAirTVShowsData?.results || [])}
-        genres={allGenres}
-        netflixMovies={filterReleasedContent(netflixMoviesData?.results || [])}
-        huluTVShows={filterReleasedContent(finalHuluTVShows?.results || [])}
-        disneyPlusMovies={filterReleasedContent(disneyPlusMoviesData?.results || [])}
-        amazonPrimeMovies={filterReleasedContent(amazonPrimeMoviesData?.results || [])}
-        hboMaxMovies={filterReleasedContent(hboMaxMoviesData?.results || [])}
-        amazonPrimeTVShows={filterReleasedContent(finalAmazonTVShows?.results || [])}
-        hboMaxTVShows={filterReleasedContent(finalHboTVShows?.results || [])}
-        netflixTVShows={filterReleasedContent(finalNetflixTVShows?.results || [])}
-        huluMovies={filterReleasedContent(huluMoviesData?.results || [])}
-        disneyPlusTVShows={filterReleasedContent(disneyPlusTVShowsData?.results || [])}
-        forYouMedia={forYouMedia as (Movie | TVShow)[]}
-      />
-    );
-  }
-
-  // If no user is logged in, fetch only public content
-  const [
-    trendingMoviesData,
-    nowPlayingMoviesData,
-    trendingTVShowsData,
-    onTheAirTVShowsData,
-    movieGenresData,
-    tvGenresData,
-    netflixMoviesData,
-    disneyPlusMoviesData,
-    amazonPrimeMoviesData,
-    hboMaxMoviesData,
-    huluMoviesData,
-    huluLatestTVShowsData,
-    amazonLatestTVShowsData,
-    hboLatestTVShowsData,
-    netflixLatestTVShowsData,
-    disneyPlusTVShowsData,
-  ] = await Promise.all([
-    getTrendingMovies(),
-    getNowPlayingMovies(),
-    getTrendingTVShows(),
-    getOnTheAirTVShows(),
-    getMovieGenres(),
-    getTVShowGenres(),
-    discoverContent<Movie>('movie', 1, [WATCH_PROVIDER_IDS.NETFLIX], 'release_date.desc'),
-    discoverContent<Movie>('movie', 1, [WATCH_PROVIDER_IDS.DISNEY_PLUS], 'release_date.desc'),
-    discoverContent<Movie>('movie', 1, [WATCH_PROVIDER_IDS.AMAZON_PRIME_VIDEO], 'release_date.desc'),
-    discoverContent<Movie>('movie', 1, [WATCH_PROVIDER_IDS.MAX], 'release_date.desc'),
-    discoverContent<Movie>('movie', 1, [WATCH_PROVIDER_IDS.HULU], 'release_date.desc'),
-    discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.HULU], 'first_air_date.desc'),
-    discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.AMAZON_PRIME_VIDEO], 'first_air_date.desc'),
-    discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.MAX], 'first_air_date.desc'),
-    discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.NETFLIX], 'first_air_date.desc'),
-    discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.DISNEY_PLUS], 'first_air_date.desc'),
-  ]);
-
-  const [
-    huluPopular,
-    amazonPopular,
-    hboPopular,
-    netflixPopular,
-  ] = await Promise.all([
-    huluLatestTVShowsData?.results.length === 0 ? discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.HULU], 'popularity.desc') : Promise.resolve(null),
-    amazonLatestTVShowsData?.results.length === 0 ? discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.AMAZON_PRIME_VIDEO], 'popularity.desc') : Promise.resolve(null),
-    hboLatestTVShowsData?.results.length === 0 ? discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.MAX], 'popularity.desc') : Promise.resolve(null),
-    netflixLatestTVShowsData?.results.length === 0 ? discoverContent<TVShow>('tv', 1, [WATCH_PROVIDER_IDS.NETFLIX], 'popularity.desc') : Promise.resolve(null),
-  ]);
-  
-  const finalHuluTVShows = huluLatestTVShowsData?.results.length ? huluLatestTVShowsData : huluPopular;
-  const finalAmazonTVShows = amazonLatestTVShowsData?.results.length ? amazonLatestTVShowsData : amazonPopular;
-  const finalHboTVShows = hboLatestTVShowsData?.results.length ? hboLatestTVShowsData : hboPopular;
-  const finalNetflixTVShows = netflixLatestTVShowsData?.results.length ? netflixLatestTVShowsData : netflixPopular;
-
-  const allGenres: Genre[] = [...(movieGenresData || []), ...(tvGenresData || [])];
-
+// --- COMPONENT ---
+export default function StreamwaveSEOLandingPage() {
   return (
-    <HomeContent
-      trendingMovies={filterReleasedContent(trendingMoviesData?.results || [])}
-      nowPlayingMovies={filterReleasedContent(nowPlayingMoviesData?.results || [])}
-      trendingTVShows={filterReleasedContent(trendingTVShowsData?.results || [])}
-      onTheAirTVShows={filterReleasedContent(onTheAirTVShowsData?.results || [])}
-      genres={allGenres}
-      netflixMovies={filterReleasedContent(netflixMoviesData?.results || [])}
-      huluTVShows={filterReleasedContent(finalHuluTVShows?.results || [])}
-      disneyPlusMovies={filterReleasedContent(disneyPlusMoviesData?.results || [])}
-      amazonPrimeMovies={filterReleasedContent(amazonPrimeMoviesData?.results || [])}
-      hboMaxMovies={filterReleasedContent(hboMaxMoviesData?.results || [])}
-      amazonPrimeTVShows={filterReleasedContent(finalAmazonTVShows?.results || [])}
-      hboMaxTVShows={filterReleasedContent(finalHboTVShows?.results || [])}
-      netflixTVShows={filterReleasedContent(finalNetflixTVShows?.results || [])}
-      huluMovies={filterReleasedContent(huluMoviesData?.results || [])}
-      disneyPlusTVShows={filterReleasedContent(disneyPlusTVShowsData?.results || [])}
-      forYouMedia={[] as (Movie | TVShow)[]} // No personalized data for public users
-    />
+    <div className="min-h-screen flex flex-col items-center justify-start bg-primaryBg text-textLight px-4 w-full pt-32"> 
+      {/* ↑ pt-32 pushes everything down below the navbar */}
+
+      {/* HEADER */}
+      <header className="w-full text-center mb-10">
+        <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">
+          <span className="text-white">Stream</span>
+          <span className="text-accentBlue font-semibold">Wave</span>
+        </h2>
+      </header>
+
+      {/* HERO */}
+      <section className="w-full text-center space-y-4 mb-16">
+        <h1 className="font-extrabold text-white drop-shadow-lg">
+          <span className="block text-3xl md:text-4xl leading-tight">
+            Watch Free Movies Online &
+          </span>
+          <span className="block text-3xl md:text-4xl leading-tight">
+            TV Shows in HD
+          </span>
+        </h1>
+
+        <p className="text-base md:text-lg text-textMuted max-w-2xl mx-auto">
+          Stream the latest hits and timeless classics. Featuring: <strong className="text-textLight">{featuredTitles.heroText}</strong>.
+        </p>
+
+        <Link
+          href="/home"
+          className="inline-block bg-accent text-white font-extrabold py-3 px-8 rounded-full text-lg transition-all duration-300 shadow-xl shadow-accent/50 hover:shadow-2xl hover:shadow-accent/70 transform hover:scale-105 mt-6"
+        >
+          Start Watching Now
+        </Link>
+      </section>
+
+      {/* CONTENT */}
+      <section className="w-full text-left space-y-12 max-w-6xl px-6 mb-24">
+        <div>
+          <h2 className="text-2xl font-bold mb-4 text-textLight">Discover the Future of Free Streaming</h2>
+          <p className="text-lg text-textMuted leading-relaxed">
+            Welcome to <strong className="text-accent">StreamWave</strong>, your premier destination for completely <strong className="text-textLight">free</strong> and effortlessly high-quality movies and TV shows. Tired of sign-up barriers and distracting ads? We built <strong className="text-accent">StreamWave</strong> to be different. Our platform features an intuitive interface and a vast, constantly updated library, offering you the best way to stream online today. Dive into entertainment instantly—it's how streaming should be.
+          </p>
+        </div>
+
+        <div>
+          <h2 className="text-2xl font-bold mb-4 text-textLight">Unrivaled Collection in Crystal-Clear HD</h2>
+          <p className="text-lg text-textMuted leading-relaxed">
+            Our catalog is a curated collection spanning every major genre: <strong>thrillers</strong>, <strong>comedies</strong>, <strong>action</strong>, <strong>horror</strong>, and critically acclaimed <strong>dramas</strong>. We prioritize <strong className="text-textLight">High Definition (HD)</strong> quality across all titles, ensuring a superior viewing experience. You'll find everything from the latest theatrical releases to beloved cult classics. Simply put, if it's worth watching, <strong className="text-accent">StreamWave</strong> has it, delivering cinematic quality right to your device.
+          </p>
+        </div>
+
+        <div>
+          <h2 className="text-2xl font-bold mb-4 text-textLight">Platform Features Designed for You:</h2>
+          <ul className="list-disc list-inside space-y-3 text-lg text-textMuted inline-block text-left">
+            <li><strong className="text-textLight">Premium Quality:</strong> Stream thousands of titles in native <strong>HD resolution</strong>.</li>
+            <li><strong className="text-textLight">Instant Access:</strong> <strong>Zero registration</strong> required—watch what you want, when you want.</li>
+            <li><strong className="text-textLight">Universal Compatibility:</strong> Works perfectly on all devices, from desktop to mobile.</li>
+            <li><strong className="text-textLight">Intuitive Design:</strong> Effortless navigation to quickly find your next favorite movie or series.</li>
+          </ul>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="w-full py-6 text-center text-textMuted text-sm border-t border-secondaryBgDark">
+        &copy; {new Date().getFullYear()} Stream Wave. All rights reserved.
+      </footer>
+    </div>
   );
 }
