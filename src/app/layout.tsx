@@ -38,8 +38,11 @@ export const metadata = {
 
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const disableRightClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+  };
   return (
-    <html lang="en">
+    <html lang="en" onContextMenu={disableRightClick}>
       <body>
         <Navbar />
         <main>{children}</main>
