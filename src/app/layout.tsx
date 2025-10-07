@@ -5,7 +5,7 @@ import { ReactNode } from 'react';
 import Navbar from '@/components/Navbar';
 import AuthListener from '@/components/AuthListener';
 import { Analytics } from '@vercel/analytics/next';
-
+import Script from 'next/script';
 // 🚨 ACTION REQUIRED: Replace with your actual live domain URL
 const BASE_URL = 'https://www.streamwave.xyz'; 
 
@@ -36,14 +36,20 @@ export const metadata = {
   },
 };
 
-
+const disableRightClickScript = `
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+  });
+`;
 export default function RootLayout({ children }: { children: ReactNode }) {
-  const disableRightClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-  };
   return (
-    <html lang="en" onContextMenu={disableRightClick}>
+    <html lang="en">
       <body>
+        <Script 
+        id="disable-right-click"
+        dangerouslySetInnerHTML={{ __html: disableRightClickScript }}
+        strategy="beforeInteractive" // Load this early to disable the menu immediately
+      />
         <Navbar />
         <main>{children}</main>
         <div id="portal-root" />
