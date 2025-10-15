@@ -32,9 +32,9 @@ export const metadata = {
       follow: true,
     },
   },
-  other: {
+  /*other: {
     'admaven-placement': 'Bqja8rjkH',
-  },
+  },*/
 };
 
 // =========================================================================
