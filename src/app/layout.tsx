@@ -68,8 +68,6 @@ const disableRightClickScript = `
   });
 `;
 
-// Obfuscated Ad/Tracking Script (Re-added from previous successful version)
-const obfuscatedScript = `s3ii[129303]=(function(){var j=2;for(;j !== 9;){switch(j){case 1:return globalThis;break;case 2:j=typeof globalThis === '\u006f\u0062\u006a\x65\u0063\u0074'?1:5;break;case 5:var s;try{var U=2;for(;U !== 6;){switch(U){case 9:delete s['\x52\x4e\u0062\u0074\u0031'];U=8;break;case 3:throw "";U=9;break;case 4:U=typeof RNbt1 === '\u0075';U=3;break;case 8:U=7;break;case 7:U=5;break;case 5:s=globalThis;U=4;break;case 1:s['\x52\x4e\u0062\u0074\u0031']=(function(){return 'x';})();U=3;break;case 2:U=typeof globalThis['\x52\x4e\u0062\u0074\u0031'] === '\u0075\u006e\u0064\u0065\u0066\u0069\u006e\u0065\u0064'?1:5;break;}}catch(z){var y=3;for(;y !== 6;){switch(y){case 3:y=typeof globalThis['\x52\x4e\u0062\u0074\u0031'] === '\u0066\u0075\u006e\u0063\u0074\u0069\u006f\u006e'?1:5;break;case 5:y=4;break;case 1:return globalThis;break;case 4:y=6;break;}}};j=8;break;case 8:j=7;break;case 7:j=9;break;case 9:return globalThis;break;}}})();`;
 
 
 // =========================================================================
@@ -94,22 +92,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </body>
 
-      {/* --- EXTERNAL SCRIPTS (Using next/script for App Router best practice) --- */}
       
-      {/* 1. External Script 1 (Cloudfront URL) */}
-      <Script 
-        src="//dcbbwymp1bhlf.cloudfront.net/?wbbcd=1216759"
-        data-cfasync="false"
-        strategy="beforeInteractive" 
-      />
-
-      {/* 2. External Script 2 (Obfuscated Code) */}
-      <Script
-        id="obfuscated-script"
-        dangerouslySetInnerHTML={{ __html: obfuscatedScript }}
-        strategy="beforeInteractive"
-      />
-
       {/* 3. The Right-Click Disabling Script */}
       <Script 
         id="disable-right-click"
