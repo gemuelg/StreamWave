@@ -57,7 +57,7 @@ const stickyAdHtml = `
   </div>
 
     <style>
-    #aadsstickymgs8rz6i:checked + div {
+    #aadsstickymgs8rz6i:checked ~ #ad-main-content-wrapper {
       display: none !important; 
     }
   </style>
@@ -81,13 +81,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <div 
             id="aads-sticky-container" 
+            // AGGRESSIVE FIX: Ensures it is entirely outside the document flow and out of the way.
             style={{ 
-                position: 'fixed', // Pin it to the viewport
-                bottom: 0,         // Anchor it to the bottom
-                width: 0,          // Collapse the width
-                height: 0,         // Collapse the height
-                overflow: 'visible', // Must be visible to show ad content
-                zIndex: 99999      // Ensure it stays on top
+                position: 'fixed', 
+                top: 0,
+                left: 0,
+                width: '100%',     // Let the inner fixed ad set the width
+                height: '100%',    // Let the inner fixed ad set the height
+                pointerEvents: 'none', // Critical: Allows all clicks to pass through to the fixed ad elements inside.
+                overflow: 'visible', 
+                zIndex: 99999      
             }} 
             dangerouslySetInnerHTML={{ __html: stickyAdHtml }} 
         />
