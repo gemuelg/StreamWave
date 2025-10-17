@@ -58,6 +58,34 @@ const stickyAdHtml = `
   </div>
 `;
 
+// --- NEW CONSTANT: WHITESPACE REMOVAL SCRIPT ---
+const stickyAdInjectionScript = `
+  (function() {
+    // 1. Get the ad HTML string
+    let adHtml = document.getElementById('aads-sticky-container').innerHTML;
+    
+    // 2. FORCE MINIFICATION: Remove all unnecessary whitespace, newlines, tabs, etc.
+    // This is the CRITICAL STEP to eliminate the multiplying &nbsp; issue.
+    adHtml = adHtml.replace(/\\s+/g, ' ').replace(/> </g, '><').trim();
+    
+    // 3. Create a clean, independent container and inject the minified HTML
+    const container = document.createElement('div');
+    container.id = 'aads-ad-final-wrapper'; // Use a new ID to avoid conflict
+    
+    // The fixed positioning is applied here to prevent document flow interference
+    container.style.cssText = 'z-index:99999; position:fixed; bottom:0; left:0; right:0; width:1px; height:1px; overflow:visible; pointer-events:none; display:block;';
+    
+    container.innerHTML = adHtml;
+    
+    // 4. Append the container to the document body
+    document.body.appendChild(container);
+
+    // 5. Hide the original container immediately
+    document.getElementById('aads-sticky-container').style.display = 'none';
+    
+  })();
+`;
+
 // Right-Click Disabling Script (Correctly defined)
 const disableRightClickScript = `
   document.addEventListener('contextmenu', function(e) {
@@ -80,18 +108,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AuthListener />
         <Analytics />
 
-        {/* --- AD HTML EMBED: FORCED HIDDEN --- */}
+        {/* --- AD HTML SOURCE CONTAINER (MUST BE HIDDEN) --- */}
         <div 
             id="aads-sticky-container" 
-            // FIX: Force the container to be hidden immediately, eliminating the blank space.
-            style={{ display: 'none', zIndex: 99999 }} 
+            // Crucial: Hiding this element to eliminate the immediate blank space.
+            style={{ display: 'none', zIndex: -1 }} 
             dangerouslySetInnerHTML={{ __html: stickyAdHtml }} 
         />
 
-        {/* --- Script to show the ad after load (optional, but ensures display) --- */}
-        <Script id="show-ad-script" strategy="lazyOnload">
-          {`document.getElementById('aads-sticky-container').style.display='block';`}
-        </Script>
+        {/* The ad is now functional and controlled by its own element inside the final wrapper */}
       </body>
 
       
@@ -101,6 +126,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         dangerouslySetInnerHTML={{ __html: disableRightClickScript }}
         strategy="beforeInteractive"
       />
+
+      {/* 2. AD INJECTION SCRIPT (NEW MINIFICATION STEP) */}
+      <Script
+        id="ad-injection-script"
+        dangerouslySetInnerHTML={{ __html: stickyAdInjectionScript }}
+        // Using lazyOnload ensures the source HTML is in the DOM before the script runs.
+        strategy="lazyOnload" 
+      />
     </html>
   );
 }
