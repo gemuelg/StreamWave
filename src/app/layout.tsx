@@ -41,41 +41,25 @@ export const metadata = {
 // SCRIPT CONSTANTS
 // =========================================================================
 
-const stickyAdInjectionScript = `
-  (function() {
-    const adHtml = \`
-      <input autocomplete="off" type="checkbox" id="aadsstickymgs8rz6i" hidden />
-    
-      <div style="padding-top: 0; padding-bottom: auto;">
-        <div style="width:100%;height:auto;position:fixed;text-align:center;font-size:0;bottom:0;left:0;right:0;margin:auto">
-          <label for="aadsstickymgs8rz6i" style="top: 50%;transform: translateY(-50%);right:24px;; position: absolute;border-radius: 4px; background: rgba(248, 248, 249, 0.70); padding: 4px;z-index: 99999;cursor:pointer">
-            <svg fill="#000000" height="16px" width="16px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 490 490">
-              <polygon points="456.851,0 245,212.564 33.149,0 0.708,32.337 212.669,245.004 0.708,457.678 33.149,490 245,277.443 456.851,490 489.292,457.678 277.331,245.004 489.292,32.337 "/>
-            </svg>
-          </label>
-          <div id="frame" style="width: 100%;margin: auto;position: relative; z-index: 99998;"><iframe data-aa=2412833 src=//acceptable.a-ads.com/2412833/?size=Adaptive style='border:0; padding:0; width:70%; height:auto; overflow:hidden; margin: auto'></iframe></div>
-        </div>
-        <style>
-          #aadsstickymgs8rz6i:checked ~ div {
-            display: none !important;
-          }
-        </style>
-      </div>
-    \`;
-
-    // 1. Create a wrapper div to contain the HTML
-    const container = document.createElement('div');
-    container.id = 'aads-sticky-script-injector';
-    container.style.zIndex = '99999';
-    container.style.position = 'fixed';
-    
-    // 2. Inject the HTML string
-    container.innerHTML = adHtml;
-    
-    // 3. Append the container to the document body
-    document.body.appendChild(container);
-
-  })();
+const aadsStickyScript = `
+  var s = document.createElement('script');
+  s.type = 'text/javascript';
+  s.src = '//acceptable.a-ads.com/js/sticky.js';
+  s.async = true;
+  document.body.appendChild(s);
+  var i = document.createElement('iframe');
+  i.src = '//acceptable.a-ads.com/2412833/?size=Adaptive&background_color=26599a&title_hover_color=4b225e&link_color=359cd7';
+  i.style = 'border:0; padding:0; width:100%; height:75px; overflow:hidden; margin:auto;';
+  i.setAttribute('data-aa', 2412833);
+  
+  // Create the main wrapper container for the sticky ad
+  var container = document.createElement('div');
+  container.id = 'aads-sticky-ad';
+  container.style.cssText = 'position:fixed; bottom:0; left:0; right:0; margin:auto; z-index:99999; text-align:center; width: 70%;';
+  
+  // Append the iframe and the sticky script loader
+  container.appendChild(i);
+  document.body.appendChild(container);
 `;
 
 // Right-Click Disabling Script (Correctly defined)
@@ -103,9 +87,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </body>
 
       <Script
-        id="ad-injection-script"
-        dangerouslySetInnerHTML={{ __html: stickyAdInjectionScript }}
-        strategy="lazyOnload" // Use lazyOnload to wait for the body to be ready
+        id="aads-standard-sticky"
+        dangerouslySetInnerHTML={{ __html: aadsStickyScript }}
+        strategy="lazyOnload" // Ensure the main content loads first
       />
       {/* 3. The Right-Click Disabling Script */}
       <Script 
