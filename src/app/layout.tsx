@@ -87,7 +87,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* --- AD HTML EMBED --- */}
         <div 
             id="aads-sticky-container" // Updated ID for clarity
-            style={{ position: 'absolute', zIndex: 99999 }} 
+            style={{ zIndex: 99999 }} 
             dangerouslySetInnerHTML={{ __html: stickyAdHtml }} 
         />
       </body>
