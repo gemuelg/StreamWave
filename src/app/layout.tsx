@@ -58,7 +58,7 @@ const stickyAdHtml = `
 
     <style>
     #aadsstickymgs8rz6i:checked + div {
-      display: none !important; /* Use !important to override other fixed styles */
+      display: none !important; 
     }
   </style>
 `;
@@ -79,15 +79,7 @@ const disableRightClickScript = `
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>
-        <Navbar />
-        <main>{children}</main>
-        <div id="portal-root" />
-        <AuthListener />
-        <Analytics />
-
-        {/* --- AD HTML EMBED --- */}
-        <div 
+      <div 
             id="aads-sticky-container" 
             style={{ 
                 position: 'fixed', // Pin it to the viewport
@@ -99,7 +91,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             }} 
             dangerouslySetInnerHTML={{ __html: stickyAdHtml }} 
         />
-      </body>
+      <body>
+        <Navbar />
+        <main>{children}</main>
+        <div id="portal-root" />
+        <AuthListener />
+        <Analytics />
+      </body>
 
       
       {/* 3. The Right-Click Disabling Script */}
