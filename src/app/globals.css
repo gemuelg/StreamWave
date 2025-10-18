@@ -8,13 +8,24 @@
 html,
 body {
   @apply h-full antialiased;
-  overflow-x: hidden;
+  /* Prevents the ad from adding height to the page */
+    height: 100% !important; 
+    /* Prevents scrolling if the ad causes an overflow */
+    overflow-y: hidden !important; 
+    /* Ensures no horizontal scrolling */
+    overflow-x: hidden !important;
   margin: 0;
   padding: 0;
 }
 
 body {
   @apply bg-primaryBg text-textLight;
+  position: relative !important;
+}
+main {
+    /* Ensure your main content scrolls correctly if needed */
+    overflow-y: auto !important; 
+    height: 100vh !important;
 }
 
 /* Custom Swiper Styles for Pagination */
