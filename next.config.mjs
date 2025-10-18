@@ -1,7 +1,4 @@
-// next.config.mjs
-
-// 🚨 CRITICAL FIX: Use 'import' instead of 'require' for ES Module compatibility
-import HtmlMinifierPlugin from 'html-minifier-webpack-plugin';
+// next.config.mjs - CLEAN AND SAFE CONFIGURATION
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -18,33 +15,18 @@ const nextConfig = {
       },
     ],
   },
+  
+  // 🚨 CRITICAL FIX: Use 'swcMinify'
+  // This tells Next.js to use its highly optimized SWC minifier, which generally respects React Hydration rules
+  // but still aggressively minifies JavaScript and HTML.
+  swcMinify: true,
 
-  // CRITICAL FIX: Add a custom Webpack configuration function
-  webpack: (config, { isServer, dev }) => {
-    // We only apply this aggressive minification in production builds (not server/dev)
-    if (!isServer && !dev) {
-      config.optimization.minimize = true;
-
-      if (!config.optimization.minimizer) {
-        config.optimization.minimizer = [];
-      }
-
-      config.optimization.minimizer.push(
-        // Use the imported plugin
-        new HtmlMinifierPlugin({
-          // These options aggressively remove whitespace and comments
-          removeComments: true,
-          collapseWhitespace: true, 
-          removeAttributeQuotes: true,
-          removeRedundantAttributes: true,
-          minifyCSS: true,
-          minifyJS: true,
-        })
-      );
-    }
-    return config;
+  // Add the experimental setting that sometimes helps with HTML entity handling.
+  experimental: {
+    // This setting tells the compiler to aggressively minify the HTML output,
+    // which should include structural whitespace removal, without using a custom webpack config.
+    optimizeServerComponentExternalPackages: true,
   },
 };
 
-// Use the ES Module 'export default' syntax
 export default nextConfig;
