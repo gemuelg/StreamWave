@@ -83,11 +83,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <Navbar />
-        <main>{children}</main>
-        <div id="portal-root" />
-        <AuthListener />
-        <Analytics />
+        
+        {/* 🚨 CRITICAL FIX: The new scrollable content wrapper */}
+        <div id="page-content-wrapper"> 
+          <Navbar />
+          <main>{children}</main>
+          
+            {/* If you have a Footer component, place it here: <Footer /> */}
+            
+          <div id="portal-root" />
+          <AuthListener />
+          <Analytics />
+        </div>
         
       </body>
 
@@ -99,11 +106,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         strategy="beforeInteractive"
       />
 
-      {/* 2. AD INJECTION SCRIPT: Injecting the clean, isolated HTML */}
+      {/* 2. AD INJECTION SCRIPT */}
       <Script
         id="ad-injection-script"
         dangerouslySetInnerHTML={{ __html: stickyAdInjectionScript }}
-        strategy="lazyOnload" // Ensures the main DOM is available
+        strategy="lazyOnload" 
       />
     </html>
   );
