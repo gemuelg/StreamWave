@@ -19,30 +19,20 @@ body {
     position: relative; /* Reset from !important */
 }
 
-/* 2. THE NEW SCROLLABLE WRAPPER (CRITICAL FIX) */
 #page-content-wrapper {
-    /* Set min-height to push content down for smaller pages */
-    min-height: calc(100vh - 75px); 
-    
-    
-    /* Ensure no margin/padding interference */
+    min-height: 100vh;
+    padding-bottom: 75px !important; 
     margin: 0 !important; 
-    
-    /* Ensure the wrapper respects the boundaries */
-    width: 100%;
     box-sizing: border-box;
+    width: 100%;
 }
 
-
-/* 3. MAIN CONTENT: Remove scroll control from <main> */
 main {
-    /* REMOVE all height, overflow-y, and excessive padding rules */
-    height: auto !important; /* Allow it to naturally expand */
-    overflow-y: visible !important; /* Allow normal visibility */
-    padding-bottom: 0 !important; /* Remove conflicting padding */
+    height: auto !important;
+    overflow-y: visible !important;
+    padding-bottom: 0 !important;
     margin: 0 !important; 
 }
-
 
 /* 4. FOOTER ADJUSTMENT: If you have a separate Footer component */
 footer {
