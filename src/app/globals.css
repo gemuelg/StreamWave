@@ -7,26 +7,39 @@
 /* 1. RESET: Allow standard flow on HTML/BODY */
 html,
 body {
-    height: 100%; 
-    overflow: auto; 
+    @apply h-full antialiased;
+    height: 100%; /* Must be 100%, not !important, to respect natural flow */
+    overflow: auto; /* Reset to default */
     margin: 0;
     padding: 0;
 }
 
-/* 2. THE NEW SCROLLABLE WRAPPER (CRITICAL FOR FOOTER FIX) */
-#page-content-wrapper {
-    min-height: 100vh;
-    padding-bottom: 75px !important; /* CRITICAL: Buffer space for the 75px fixed ad */
-    margin: 0 !important; 
-    box-sizing: border-box;
-    width: 100%;
+body {
+    @apply bg-primaryBg text-textLight;
+    position: relative; /* Reset from !important */
 }
 
-/* 3. MAIN CONTENT: Remove conflicting heights/overflows */
+/* 2. THE NEW SCROLLABLE WRAPPER (CRITICAL FIX) */
+#page-content-wrapper {
+    /* Set min-height to push content down for smaller pages */
+    min-height: calc(100vh - 75px); 
+    
+    
+    /* Ensure no margin/padding interference */
+    margin: 0 !important; 
+    
+    /* Ensure the wrapper respects the boundaries */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+
+/* 3. MAIN CONTENT: Remove scroll control from <main> */
 main {
-    height: auto !important;
-    overflow-y: visible !important;
-    padding-bottom: 0 !important;
+    /* REMOVE all height, overflow-y, and excessive padding rules */
+    height: auto !important; /* Allow it to naturally expand */
+    overflow-y: visible !important; /* Allow normal visibility */
+    padding-bottom: 0 !important; /* Remove conflicting padding */
     margin: 0 !important; 
 }
 
