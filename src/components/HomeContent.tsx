@@ -51,7 +51,7 @@ export default function HomeContent({
     <div className="min-h-screen flex flex-col bg-primaryBg text-textLight">
       <Navbar />
 
-      <main className="flex-grow pt-10">
+      <main className="flex-grow pt-5">
         <HomeHero content={trendingMovies} contentType="movie" />
 
         {/* PERSONALIZED RECOMMENDATIONS */}
