@@ -1,4 +1,4 @@
-// next.config.mjs - CLEAN AND SAFE CONFIGURATION
+// next.config.mjs - ABSOLUTELY MINIMAL AND SAFE CONFIGURATION
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -16,16 +16,15 @@ const nextConfig = {
     ],
   },
   
-  // 🚨 CRITICAL FIX: Use 'swcMinify'
-  // This tells Next.js to use its highly optimized SWC minifier, which generally respects React Hydration rules
-  // but still aggressively minifies JavaScript and HTML.
+  // CRITICAL: Keep the native, stable SWC minifier
   swcMinify: true,
 
-  // Add the experimental setting that sometimes helps with HTML entity handling.
-  experimental: {
-    // This setting tells the compiler to aggressively minify the HTML output,
-    // which should include structural whitespace removal, without using a custom webpack config.
-    optimizeServerComponentExternalPackages: true,
+  // IMPORTANT: REMOVE ALL PROBLEMATIC EXPERIMENTAL KEYS
+  // No 'experimental' object is included here.
+
+  // Remove the custom webpack function
+  webpack: (config, { isServer, dev }) => {
+    return config;
   },
 };
 

@@ -38,10 +38,10 @@ export const metadata = {
 };
 
 // =========================================================================
-// SCRIPT CONSTANTS
+// SCRIPT CONSTANTS (NO WHITESPACE STRIPPER INCLUDED)
 // =========================================================================
 
-// --- MINIFIED AD HTML (Prevents new &nbsp; in ad unit and ensures close button works) ---
+// --- MINIFIED AD HTML (Ensures no new &nbsp; in ad unit) ---
 const stickyAdHtml = '<div id="aads-ad-content" style="width:100%;height:auto;position:fixed;text-align:center;font-size:0;bottom:0;left:0;right:0;margin:auto;z-index:99999;"><div id="ad-outer-fixed-wrapper" style="width:100%;height:auto;position:fixed;text-align:center;font-size:0;bottom:0;left:0;right:0;margin:auto;z-index:99999;"><div onclick="document.getElementById(\'aads-ad-final-wrapper\').style.display=\'none\';" style="top: 50%;transform:translateY(-50%);right:24px;position:absolute;border-radius:4px;background:rgba(248,248,249,0.7);padding:4px;z-index:100000;cursor:pointer;"><svg fill="#000000" height="16px" width="16px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 490 490"><polygon points="456.851,0 245,212.564 33.149,0 0.708,32.337 212.669,245.004 0.708,457.678 33.149,490 245,277.443 456.851,490 489.292,457.678 277.331,245.004 489.292,32.337 "/></svg></div><div id="frame" style="width:100%;margin:auto;position:relative;z-index:99998;"><iframe data-aa=2412833 src="//acceptable.a-ads.com/2412833/?size=Adaptive" style="border:0;padding:0;width:70%;height:auto;overflow:hidden;margin:auto"></iframe></div></div></div>';
 
 // --- AD INJECTION SCRIPT (Clean injection logic) ---
@@ -65,48 +65,6 @@ const disableRightClickScript = `
   });
 `;
 
-// --- WHITESPACE STRIPPER FUNCTION (Runs safely AFTER hydration to avoid React errors) ---
-const finalSafeWhitespaceStripper = `
-  (function() {
-    // Wait for the full page load, ensuring React hydration is complete
-    window.addEventListener('load', function() {
-      const body = document.body;
-      if (!body) return;
-
-      const walker = document.createTreeWalker(
-        body,
-        NodeFilter.SHOW_TEXT,
-        null,
-        false
-      );
-
-      let node;
-      const nodesToStrip = [];
-
-      while (node = walker.nextNode()) {
-        if (node.nodeValue.trim() === '') {
-          const prevSibling = node.previousSibling;
-          const nextSibling = node.nextSibling;
-
-          // Only remove whitespace nodes between two element nodes
-          if (prevSibling && prevSibling.nodeType === 1 && nextSibling && nextSibling.nodeType === 1) {
-            nodesToStrip.push(node);
-          }
-        }
-      }
-
-      nodesToStrip.forEach(node => {
-        try {
-          node.parentNode.removeChild(node);
-        } catch (e) {
-          // Ignore if already removed
-        }
-      });
-    });
-  })();
-`;
-
-
 // =========================================================================
 // LAYOUT COMPONENT
 // =========================================================================
@@ -116,12 +74,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       
       <head>
-        {/* The head is clean. We rely on swcMinify in next.config.mjs to handle initial output. */}
+        {/* Relying on swcMinify: true in next.config.mjs */}
       </head>
       
       <body>
-        {/* CRITICAL: CLEAN, MULTI-LINE JSX STRUCTURE (avoids React Hydration Errors) */}
-        <div id="page-content-wrapper"> 
+        {/* 🚨 CRITICAL FIX: suppressHydrationWarning added here to prevent fatal crashes (#418, #423) */}
+        <div 
+            id="page-content-wrapper"
+            suppressHydrationWarning={true} 
+        > 
           <Navbar />
           <main>{children}</main>
           <div id="portal-root" />
@@ -145,12 +106,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         strategy="lazyOnload" 
       />
       
-      {/* 3. SAFE WHITESPACE CLEANUP SCRIPT (Runs AFTER React is safe) */}
-      <Script
-        id="safe-stripper"
-        dangerouslySetInnerHTML={{ __html: finalSafeWhitespaceStripper }}
-        strategy="afterInteractive" 
-      />
+      {/* 3. WHITESPACE CLEANUP SCRIPT IS REMOVED */}
     </html>
   );
 }
