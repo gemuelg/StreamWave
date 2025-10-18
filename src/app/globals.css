@@ -23,9 +23,21 @@ body {
   position: relative !important;
 }
 main {
-    /* Ensure your main content scrolls correctly if needed */
-    overflow-y: auto !important; 
-    height: 100vh !important;
+    /* Use calc() to ensure the main content height is the viewport minus the ad's height */
+    height: calc(100vh - 75px) !important;
+    overflow-y: auto !important; /* Allows content inside <main> to scroll */
+    
+    /* Adds internal padding at the bottom of <main> */
+    padding-bottom: 75px; 
+    
+    /* Ensure no margin/padding interference */
+    margin: 0 !important; 
+}
+
+/* 3. FOOTER ADJUSTMENT (If you have a separate Footer component) */
+/* If your footer is inside <main>, this isn't strictly needed, but ensures the footer itself is contained. */
+footer {
+    padding-bottom: 75px; /* Adds space inside the footer */
 }
 
 /* Custom Swiper Styles for Pagination */
