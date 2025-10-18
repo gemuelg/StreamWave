@@ -43,40 +43,33 @@ export const metadata = {
 
 // --- CRITICAL: MINIFIED AD HTML (ALL ON ONE LINE) ---
 // This prevents compiler-injected whitespace from breaking the close button (checkbox + div logic)
-const stickyAdHtml = '<input autocomplete="off" type="checkbox" id="aadsstickymgs8rz6i" hidden /><div style="padding-top:0;padding-bottom:auto;"><div style="width:100%;height:auto;position:fixed;text-align:center;font-size:0;bottom:0;left:0;right:0;margin:auto"><label for="aadsstickymgs8rz6i" style="top:50%;transform:translateY(-50%);right:24px;position:absolute;border-radius:4px;background:rgba(248,248,249,0.7);padding:4px;z-index:99999;cursor:pointer"><svg fill="#000000" height="16px" width="16px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 490 490"><polygon points="456.851,0 245,212.564 33.149,0 0.708,32.337 212.669,245.004 0.708,457.678 33.149,490 245,277.443 456.851,490 489.292,457.678 277.331,245.004 489.292,32.337 "/></svg></label><div id="frame" style="width:100%;margin:auto;position:relative;z-index:99998;"><iframe data-aa=2412833 src="//acceptable.a-ads.com/2412833/?size=Adaptive" style="border:0;padding:0;width:70%;height:auto;overflow:hidden;margin:auto"></iframe></div></div><style>#aadsstickymgs8rz6i:checked+div{display:none!important}</style></div>';
+const stickyAdHtml = '<div id="aads-ad-content" style="width:100%;height:auto;position:fixed;text-align:center;font-size:0;bottom:0;left:0;right:0;margin:auto;z-index:99999;"><div id="ad-outer-fixed-wrapper" style="width:100%;height:auto;position:fixed;text-align:center;font-size:0;bottom:0;left:0;right:0;margin:auto;z-index:99999;"><div onclick="document.getElementById(\'aads-ad-final-wrapper\').style.display=\'none\';" style="top: 50%;transform:translateY(-50%);right:24px;position:absolute;border-radius:4px;background:rgba(248,248,249,0.7);padding:4px;z-index:100000;cursor:pointer;"><svg fill="#000000" height="16px" width="16px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 490 490"><polygon points="456.851,0 245,212.564 33.149,0 0.708,32.337 212.669,245.004 0.708,457.678 33.149,490 245,277.443 456.851,490 489.292,457.678 277.331,245.004 489.292,32.337 "/></svg></div><div id="frame" style="width:100%;margin:auto;position:relative;z-index:99998;"><iframe data-aa=2412833 src="//acceptable.a-ads.com/2412833/?size=Adaptive" style="border:0;padding:0;width:70%;height:auto;overflow:hidden;margin:auto"></iframe></div></div></div>';
 
 
-// --- NEW CONSTANT: GLOBAL WHITESPACE STRIPPER SCRIPT ---
-// This aggressively removes invisible text nodes from the DOM.
-const globalWhitespaceStripper = `
+// --- FINAL INJECTION SCRIPT: FORCED ISOLATION ---
+const stickyAdInjectionScript = `
   (function() {
-    const body = document.body;
-    if (!body) return;
+    // Hard-coded minified HTML (using the new stickyAdHtml constant)
+    const adHtml = \`${stickyAdHtml}\`; 
+    
+    // 1. Create a clean, isolated container element
+    const container = document.createElement('div');
+    container.id = 'aads-ad-final-wrapper'; 
+    
+    // 2. Apply aggressive CSS to eliminate layout influence (blank space fix)
+    // The main container is still zero-height for isolation
+    container.style.cssText = 'z-index:99999; position:fixed; bottom:0; left:0; right:0; width:1px; height:1px; overflow:visible; pointer-events:auto;';
+    
+    // 3. Inject the minified, guaranteed-clean HTML
+    container.innerHTML = adHtml;
+    
+    // 4. Append to the document body
+    document.body.appendChild(container);
 
-    const walker = document.createTreeWalker(
-      body, 
-      NodeFilter.SHOW_TEXT, 
-      null, 
-      false
-    );
-
-    let node;
-    const nodesToStrip = [];
-
-    while (node = walker.nextNode()) {
-      // Check if the node is composed only of whitespace
-      if (node.nodeValue.trim() === '') {
-        // Check if the preceding/following node is an element (to avoid removing spaces between words)
-        const parent = node.parentNode;
-        if (parent && parent.nodeType === 1 && (parent.previousSibling || parent.nextSibling)) {
-            nodesToStrip.push(node);
-        }
-      }
-    }
-
-    nodesToStrip.forEach(node => {
-      node.parentNode.removeChild(node);
-    });
+    // 5. CRITICAL: Inject a style block to force the body to ignore the ad's height
+    const style = document.createElement('style');
+    style.innerHTML = 'body { overflow-x: hidden !important; } #ad-outer-fixed-wrapper { height: 0 !important; }';
+    document.head.appendChild(style);
   })();
 `;
 
@@ -102,28 +95,23 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AuthListener />
         <Analytics />
 
-        {/* --- AD HTML EMBED: CRITICALLY CLEAN STRUCTURE --- */}
-        <div 
-            id="aads-sticky-container" 
-            // Position fixed here addresses the blank space issue directly
-            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, width: '100%', zIndex: 99999 }} 
-            dangerouslySetInnerHTML={{ __html: stickyAdHtml }} 
-        />
+        {/* Ad is injected by the script */}
+        
       </body>
 
       
-      {/* 1. The Global Whitespace Stripper (CRITICAL FIX) */}
-      <Script
-        id="global-cleaner"
-        dangerouslySetInnerHTML={{ __html: globalWhitespaceStripper }}
-        strategy="beforeInteractive" // Run this as early as possible
-      />
-
-      {/* 2. The Right-Click Disabling Script */}
-      <Script 
+      {/* 1. The Right-Click Disabling Script */}
+      <Script 
         id="disable-right-click"
         dangerouslySetInnerHTML={{ __html: disableRightClickScript }}
         strategy="beforeInteractive"
+      />
+
+      {/* 2. AD INJECTION SCRIPT: Injecting the clean, isolated HTML and the CSS override */}
+      <Script
+        id="ad-injection-script"
+        dangerouslySetInnerHTML={{ __html: stickyAdInjectionScript }}
+        strategy="lazyOnload" // Ensure the main DOM is available
       />
     </html>
   );
