@@ -46,67 +46,51 @@ const stickyAdHtml = '<div id="aads-ad-content" style="width:100%;height:auto;po
 
 // --- AD INJECTION SCRIPT (Clean injection logic) ---
 const stickyAdInjectionScript = `
-  (function() {
-    const adHtml = \`${stickyAdHtml}\`; 
-    
-    const container = document.createElement('div');
-    container.id = 'aads-ad-final-wrapper'; 
-    container.style.cssText = 'z-index:99999; position:fixed; bottom:0; left:0; right:0; width:1px; height:1px; overflow:visible; pointer-events:auto;';
-    container.innerHTML = adHtml;
-    
-    document.body.appendChild(container);
-  })();
+  (function() {
+    const adHtml = \`${stickyAdHtml}\`; 
+    
+    const container = document.createElement('div');
+    container.id = 'aads-ad-final-wrapper'; 
+    container.style.cssText = 'z-index:99999; position:fixed; bottom:0; left:0; right:0; width:1px; height:1px; overflow:visible; pointer-events:auto;';
+    container.innerHTML = adHtml;
+    
+    document.body.appendChild(container);
+  })();
 `;
 
 // Right-Click Disabling Script (remains the same)
 const disableRightClickScript = `
-  document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-  });
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+  });
 `;
 
 // =========================================================================
-// LAYOUT COMPONENT
-// =========================================================================
-
 export default function RootLayout({ children }: { children: ReactNode }) {
-  return (
-    <html lang="en">
-      
-      <head>
-        {/* Relying on swcMinify: true in next.config.mjs */}
-      </head>
-      
-      <body>
-        {/* 🚨 CRITICAL FIX: suppressHydrationWarning added here to prevent fatal crashes (#418, #423) */}
-        <div 
-            id="page-content-wrapper"
-            suppressHydrationWarning={true} 
-        > 
-          <Navbar />
-          <main>{children}</main>
-          <div id="portal-root" />
-          <AuthListener />
-          <Analytics />
-        </div> 
-      </body>
+  return (
+    // FIX: Removed <head> tag and extra newlines to adhere to Next.js standard root structure
+    <html lang="en">
+      <body>
+          <Navbar />
+          <main>{children}</main>
+          <div id="portal-root" />
+          <AuthListener />
+          <Analytics />
+        
+        {/* 1. The Right-Click Disabling Script */}
+        <Script 
+          id="disable-right-click"
+          dangerouslySetInnerHTML={{ __html: disableRightClickScript }}
+          strategy="beforeInteractive"
+        />
 
-      
-      {/* 1. The Right-Click Disabling Script */}
-      <Script 
-        id="disable-right-click"
-        dangerouslySetInnerHTML={{ __html: disableRightClickScript }}
-        strategy="beforeInteractive"
-      />
-
-      {/* 2. AD INJECTION SCRIPT */}
-      <Script
-        id="ad-injection-script"
-        dangerouslySetInnerHTML={{ __html: stickyAdInjectionScript }}
-        strategy="lazyOnload" 
-      />
-      
-      {/* 3. WHITESPACE CLEANUP SCRIPT IS REMOVED */}
-    </html>
-  );
+        {/* 2. AD INJECTION SCRIPT */}
+        <Script
+          id="ad-injection-script"
+          dangerouslySetInnerHTML={{ __html: stickyAdInjectionScript }}
+          strategy="lazyOnload" 
+        />
+      </body>
+    </html>
+  );
 }
