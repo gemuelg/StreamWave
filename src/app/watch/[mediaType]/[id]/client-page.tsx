@@ -72,7 +72,7 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
   const [selectedEpisode, setSelectedEpisode] = useState<number | undefined>(undefined);
   const [showSeasonList, setShowSeasonList] = useState(false);
   
-  const [selectedServer, setSelectedServer] = useState<'multiembed' | 'hnembed' | 'videasy'>('multiembed');
+  const [selectedServer, setSelectedServer] = useState<'multiembed' | 'hnembed' | 'videasy'>('videasy');
 
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const videoPlayerRef = useRef<HTMLDivElement>(null);
