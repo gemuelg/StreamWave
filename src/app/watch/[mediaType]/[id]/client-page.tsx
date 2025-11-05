@@ -405,9 +405,9 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
                         {/* Server Buttons - Updated for mobile horizontal wrap */}
                         <div className="flex flex-wrap gap-2 justify-start">
                             <button
-                                onClick={() => setSelectedServer('multiembed')}
+                                onClick={() => setSelectedServer('videasy')}
                                 className={`flex items-center gap-2 px-3 py-1 text-sm rounded-xl font-semibold transition-colors
-                                             ${selectedServer === 'multiembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
+                                             ${selectedServer === 'videasy' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
                                            `}
                             >
                                 <PlayCircleIcon className="w-4 h-4" /> Server 1
@@ -421,9 +421,9 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
                                 <PlayCircleIcon className="w-4 h-4" /> Server 2
                             </button>
                             <button
-                                onClick={() => setSelectedServer('videasy')}
+                                onClick={() => setSelectedServer('multiembed')}
                                 className={`flex items-center gap-2 px-3 py-1 text-sm rounded-xl font-semibold transition-colors
-                                             ${selectedServer === 'videasy' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
+                                             ${selectedServer === 'multiembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
                                            `}
                             >
                                 <PlayCircleIcon className="w-4 h-4" /> Server 3
