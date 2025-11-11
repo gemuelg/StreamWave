@@ -6,8 +6,5 @@ Disallow: /
 User-agent: GPTBot
 Disallow: /
 
-# Keep the general access rule for other crawlers
-User-agent: *
-Allow: /
 
 Sitemap: https://streamwave.xyz/sitemap.xml
