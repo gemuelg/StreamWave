@@ -25,7 +25,7 @@ export const metadata = {
 
   // 🚀 MONETAG VERIFICATION CODE ADDED HERE
   other: {
-    'monetag': '806cd68e5207ebaf486345a2f5f2e8ab',
+    'monetag': 'fc17bd00734d7be1895a7fbfe074a5b2',
   },
   // ----------------------------------------
   
