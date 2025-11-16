@@ -23,7 +23,7 @@ export const metadata = {
   applicationName: 'StreamWave',
   keywords: ['streaming platform', 'movie database', 'TV shows', 'watchlist', 'discover movies', 'latest trailers'],
 
-  // 🚀 MONETAG VERIFICATION CODE ADDED HERE
+  // 🚀 MONETAG VERIFICATION CODE
   other: {
     'monetag': 'fc17bd00734d7be1895a7fbfe074a5b2',
   },
@@ -56,6 +56,14 @@ const disableRightClickScript = `
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
+      {/* 🛑 ADSFENSE SCRIPT ADDED HERE */}
+      <Script 
+        async 
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4043491676034249"
+        crossOrigin="anonymous"
+        strategy="afterInteractive" // Loads after the page is interactive
+      />
+
       <body>
           <Navbar />
           <main>{children}</main>
