@@ -28,13 +28,6 @@ export const metadata = {
     'monetag': 'fc17bd00734d7be1895a7fbfe074a5b2',
     'google-adsense-account': 'ca-pub-4043491676034249',
   },
-  scripts: [
-    {
-      src: 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4043491676034249',
-      async: true,
-      crossOrigin: 'anonymous',
-    },
-  ],
   // ----------------------------------------
   
   robots: {
@@ -64,6 +57,11 @@ const disableRightClickScript = `
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
+      <Script 
+        async 
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4043491676034249"
+        crossOrigin="anonymous" 
+      />
       <body>
           <Navbar />
           <main>{children}</main>
