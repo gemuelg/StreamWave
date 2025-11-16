@@ -61,6 +61,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         async 
         src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4043491676034249"
         crossOrigin="anonymous" 
+        strategy="beforeInteractive"
       />
       <body>
           <Navbar />
