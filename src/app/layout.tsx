@@ -5,6 +5,8 @@ import { ReactNode } from 'react';
 import Navbar from '@/components/Navbar';
 import AuthListener from '@/components/AuthListener';
 import { Analytics } from '@vercel/analytics/next';
+// NOTE: next/script is still imported for the Right-Click script, 
+// but is no longer used for AdSense.
 import Script from 'next/script'; 
 
 // 🚨 ACTION REQUIRED: Replace with your actual live domain URL
@@ -38,13 +40,11 @@ export const metadata = {
       follow: true,
     },
   },
-
 };
 
 // =========================================================================
-// SCRIPT CONSTANTS (NO WHITESPACE STRIPPER INCLUDED)
+// SCRIPT CONSTANTS 
 // =========================================================================
-
 
 // Right-Click Disabling Script (remains the same)
 const disableRightClickScript = `
@@ -57,12 +57,8 @@ const disableRightClickScript = `
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <Script 
-        async 
-        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4043491676034249"
-        crossOrigin="anonymous" 
-        strategy="beforeInteractive"
-      />
+      {/* 🛑 REMOVED THE <Script strategy="beforeInteractive"> for AdSense 🛑 */}
+      
       <body>
           <Navbar />
           <main>{children}</main>
@@ -70,14 +66,22 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <AuthListener />
           <Analytics />
         
-        {/* 1. The Right-Click Disabling Script */}
-        <Script 
-          id="disable-right-click"
-          dangerouslySetInnerHTML={{ __html: disableRightClickScript }}
-          strategy="beforeInteractive"
-        />
+          {/* 1. The Right-Click Disabling Script (Still uses Next.js Script component) */}
+          <Script 
+            id="disable-right-click"
+            dangerouslySetInnerHTML={{ __html: disableRightClickScript }}
+            strategy="beforeInteractive"
+          />
 
-        
+          {/* 🚀 ADHOC HTML SCRIPT TAG FOR ADSENSE 🚀
+             This standard script tag avoids all Next.js lifecycle issues.
+          */}
+          <script 
+            async 
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4043491676034249"
+            crossOrigin="anonymous"
+          ></script>
+          
       </body>
     </html>
   );
