@@ -26,6 +26,7 @@ export const metadata = {
   // 🚀 MONETAG VERIFICATION CODE
   other: {
     'monetag': 'fc17bd00734d7be1895a7fbfe074a5b2',
+    'google-adsense-account': 'ca-pub-4043491676034249',
   },
   // ----------------------------------------
   
@@ -56,14 +57,6 @@ const disableRightClickScript = `
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      {/* 🛑 ADSFENSE SCRIPT ADDED HERE */}
-      <Script 
-        async 
-        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4043491676034249"
-        crossOrigin="anonymous"
-        strategy="afterInteractive" // Loads after the page is interactive
-      />
-
       <body>
           <Navbar />
           <main>{children}</main>
