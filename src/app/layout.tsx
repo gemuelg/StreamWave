@@ -72,16 +72,23 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             dangerouslySetInnerHTML={{ __html: disableRightClickScript }}
             strategy="beforeInteractive"
           />
+          {/* 🚀 MONETAG AD TAG 🚀 */}
+          <script 
+            src="https://quge5.com/88/tag.min.js" 
+            data-zone="185662" 
+            async 
+            data-cfasync="false"
+          ></script>
 
           {/* 🚀 ADHOC HTML SCRIPT TAG FOR ADSENSE 🚀
              This standard script tag avoids all Next.js lifecycle issues.
-          */}
+          
           <script 
             async 
             src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4043491676034249"
             crossOrigin="anonymous"
           ></script>
-          
+          */}
       </body>
     </html>
   );
