@@ -1,5 +1,6 @@
 // app/layout.tsx
 
+// @ts-ignore: CSS module declarations may not be available in this environment
 import './globals.css';
 import { ReactNode } from 'react';
 import Navbar from '@/components/Navbar';
@@ -9,7 +10,7 @@ import { Analytics } from '@vercel/analytics/next';
 // but is no longer used for AdSense.
 import Script from 'next/script'; 
 
-// 🚨 ACTION REQUIRED: Replace with your actual live domain URL
+
 const BASE_URL = 'https://www.streamwave.xyz'; 
 
 export const metadata = {

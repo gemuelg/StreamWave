@@ -40,7 +40,7 @@ const WatchlistCard: React.FC<WatchlistCardProps> = ({ item, onRemove }) => {
     return (
         <div className="relative group overflow-hidden rounded-lg shadow-lg transform transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-2xl h-full w-full">
             {/* CORRECTED LINE: Using the utility function to get the plural path */}
-            <Link href={`/${getMediaPath(type)}/${item.id}`}>
+            <Link href={`/${getMediaPath(type)}/${item.id}`} prefetch={false}>
                 <div className="w-full h-full relative">
                     <Image
                         src={posterUrl}

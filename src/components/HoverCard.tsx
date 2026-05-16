@@ -143,7 +143,7 @@ const HoverCard: React.FC<HoverCardProps> = ({ item, contentType, position, genr
           </div>
   
           <div className="flex items-end px-2">
-            <Link href={mediaLink} className="flex-1 mr-2">
+            <Link href={mediaLink} className="flex-1 mr-2" prefetch={false}>
               <button className="w-full flex items-center justify-center bg-[#f04f7c] hover:bg-pink-600 text-white font-semibold py-2 rounded-lg transition-colors duration-200">
                 <PlayIcon className="w-5 h-5 mr-2" /> Watch now
               </button>

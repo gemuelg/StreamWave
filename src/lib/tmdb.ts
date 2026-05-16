@@ -259,70 +259,74 @@ declare module './tmdb' {
   }
 }
 
-// UPDATED: Added `content_ratings` to `append_to_response`
+// ENHANCEMENT: Changed caching to 24 hours (86400 seconds)
 export const getTVShowDetails = async (id: number): Promise<TVShowDetails | null> => {
-  try {
-    const response = await fetch(`${BASE_URL}/tv/${id}?api_key=${API_KEY}&append_to_response=credits,videos,content_ratings`);
-    if (!response.ok) {
-      if (response.status === 404) return null;
-      throw new Error(`Error fetching TV show details for ID ${id}: ${response.statusText}`);
-    }
-    const data: TVShowDetails = await response.json();
-    return data;
-  } catch (error) {
-    console.error(`Failed to fetch TV show details for ID ${id}:`, error);
-    return null;
-  }
+  try {
+    const response = await fetch(`${BASE_URL}/tv/${id}?api_key=${API_KEY}&append_to_response=credits,videos,content_ratings`, { next: { revalidate: 86400 } });
+    if (!response.ok) {
+      if (response.status === 404) return null;
+      throw new Error(`Error fetching TV show details for ID ${id}: ${response.statusText}`);
+    }
+    const data: TVShowDetails = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`Failed to fetch TV show details for ID ${id}:`, error);
+    return null;
+  }
 };
 
+// ENHANCEMENT: Changed caching to 24 hours (86400 seconds)
 export async function getNowPlayingMovies(): Promise<TMDBListResponse<Movie>> {
-  try {
-    const res = await fetch(`${BASE_URL}/movie/now_playing?api_key=${API_KEY}&language=en-US&page=1&include_adult=false&certification_country=US&certification.lte=R`);
-    if (!res.ok) {
-      throw new Error(`Failed to fetch now playing movies: ${res.statusText}`);
-    }
-    const data = await res.json();
-    return data;
-  } catch (error) {
-    console.error("Failed to fetch now playing movies:", error);
-    return { page: 0, results: [], total_pages: 0, total_results: 0 };
-  }
+  try {
+    const res = await fetch(`${BASE_URL}/movie/now_playing?api_key=${API_KEY}&language=en-US&page=1&include_adult=false&certification_country=US&certification.lte=R`, { next: { revalidate: 86400 } });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch now playing movies: ${res.statusText}`);
+    }
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch now playing movies:", error);
+    return { page: 0, results: [], total_pages: 0, total_results: 0 };
+  }
 }
 
+// ENHANCEMENT: Changed caching to 24 hours (86400 seconds)
 export async function getOnTheAirTVShows(): Promise<TMDBListResponse<TVShow>> {
-  try {
-    const res = await fetch(`${BASE_URL}/tv/on_the_air?api_key=${API_KEY}&language=en-US&page=1&include_adult=false`);
-    if (!res.ok) {
-      throw new Error(`Failed to fetch on the air TV shows: ${res.statusText}`);
-    }
-    const data = await res.json();
-    return data;
-  } catch (error) {
-    console.error("Failed to fetch on the air TV shows:", error);
-    return { page: 0, results: [], total_pages: 0, total_results: 0 };
-  }
+  try {
+    const res = await fetch(`${BASE_URL}/tv/on_the_air?api_key=${API_KEY}&language=en-US&page=1&include_adult=false`, { next: { revalidate: 86400 } });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch on the air TV shows: ${res.statusText}`);
+    }
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch on the air TV shows:", error);
+    return { page: 0, results: [], total_pages: 0, total_results: 0 };
+  }
 }
 
+// ENHANCEMENT: Changed heavy caching to 1 WEEK (604800 seconds)
 export async function getMovieGenres(): Promise<Genre[]> {
-  try {
-    const res = await fetch(`${BASE_URL}/genre/movie/list?api_key=${API_KEY}`);
-    const data = await res.json();
-    return data.genres;
-  } catch (error) {
-    console.error('Error fetching movie genres:', error);
-    return [];
-  }
+  try {
+    const res = await fetch(`${BASE_URL}/genre/movie/list?api_key=${API_KEY}`, { next: { revalidate: 604800 } });
+    const data = await res.json();
+    return data.genres;
+  } catch (error) {
+    console.error('Error fetching movie genres:', error);
+    return [];
+  }
 };
 
+// ENHANCEMENT: Changed heavy caching to 1 WEEK (604800 seconds)
 export async function getTVShowGenres(): Promise<Genre[]> {
 try {
-    const res = await fetch(`${BASE_URL}/genre/tv/list?api_key=${API_KEY}`);
-    const data = await res.json();
-    return data.genres;
-  } catch (error) {
-    console.error('Error fetching TV show genres:', error);
-    return [];
-  }
+    const res = await fetch(`${BASE_URL}/genre/tv/list?api_key=${API_KEY}`, { next: { revalidate: 604800 } });
+    const data = await res.json();
+    return data.genres;
+  } catch (error) {
+    console.error('Error fetching TV show genres:', error);
+    return [];
+  }
 };
 
 const getTodayDate = (): string => {
@@ -333,140 +337,143 @@ const getTodayDate = (): string => {
   return `${year}-${month}-${day}`;
 };
 
-// UPDATED: Removed hardcoded filters
+// ENHANCEMENT: Changed caching to 24 hours (86400 seconds)
 export async function getFilteredMovies(
-  page: number = 1,
-  genres: string = '',
-  year: number | null = null,
-  sortBy: string = 'popularity.desc'
+  page: number = 1,
+  genres: string = '',
+  year: number | null = null,
+  sortBy: string = 'popularity.desc'
 ): Promise<{ results: Movie[]; total_pages: number }> {
-  let url = `${BASE_URL}/discover/movie?api_key=${API_KEY}&language=en-US&page=${page}&sort_by=${sortBy}&include_adult=false&certification_country=US&certification.lte=R`;
-  if (genres) {
-    url += `&with_genres=${genres}`;
-  }
-  if (year) {
-    url += `&primary_release_year=${year}`;
-  }
-  // NEW: Filter out movies with a future release date
-  url += `&primary_release_date.lte=${getTodayDate()}`;
+  let url = `${BASE_URL}/discover/movie?api_key=${API_KEY}&language=en-US&page=${page}&sort_by=${sortBy}&include_adult=false&certification_country=US&certification.lte=R`;
+  if (genres) {
+    url += `&with_genres=${genres}`;
+  }
+  if (year) {
+    url += `&primary_release_year=${year}`;
+  }
+  url += `&primary_release_date.lte=${getTodayDate()}`;
 
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch filtered movies: ${res.statusText}`);
-  }
-  const data = await res.json();
-  return { results: data.results, total_pages: data.total_pages };
+  const res = await fetch(url, { next: { revalidate: 86400 } });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch filtered movies: ${res.statusText}`);
+  }
+  const data = await res.json();
+  return { results: data.results, total_pages: data.total_pages };
 }
-// UPDATED: Removed hardcoded filters
-// Update this function in src/lib/tmdb.ts
+
+// ENHANCEMENT: Changed caching to 24 hours (86400 seconds)
 export const getFilteredTVShows = async (
-  page: number = 1,
-  genres: string = '',
-  year: number | null = null,
-  sortBy: string = 'popularity.desc'
+  page: number = 1,
+  genres: string = '',
+  year: number | null = null,
+  sortBy: string = 'popularity.desc'
 ): Promise<TMDBListResponse<TVShow>> => {
-  let url = `${BASE_URL}/discover/tv?api_key=${API_KEY}&language=en-US&page=${page}&sort_by=${sortBy}&include_adult=false`;
-  if (genres) {
-    url += `&with_genres=${genres}`;
-  }
-  if (year) {
-    url += `&first_air_date_year=${year}`;
-  }
-  // NEW: Filter out TV shows with a future first air date
-  url += `&first_air_date.lte=${getTodayDate()}`;
+  let url = `${BASE_URL}/discover/tv?api_key=${API_KEY}&language=en-US&page=${page}&sort_by=${sortBy}&include_adult=false`;
+  if (genres) {
+    url += `&with_genres=${genres}`;
+  }
+  if (year) {
+    url += `&first_air_date_year=${year}`;
+  }
+  url += `&first_air_date.lte=${getTodayDate()}`;
 
-  const response = await fetch(url);
+  const response = await fetch(url, { next: { revalidate: 86400 } });
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch TV shows: ${response.statusText}`);
-  }
+  if (!response.ok) {
+    throw new Error(`Failed to fetch TV shows: ${response.statusText}`);
+  }
 
-  return response.json();
+  return response.json();
 };
 
+// ENHANCEMENT: Changed heavy caching to 1 WEEK (604800 seconds)
 export const getTVGenres = async (): Promise<Genre[]> => {
-  const url = `${BASE_URL}/genre/tv/list?api_key=${API_KEY}`;
-  const response = await fetch(url);
+  const url = `${BASE_URL}/genre/tv/list?api_key=${API_KEY}`;
+  const response = await fetch(url, { next: { revalidate: 604800 } });
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch TV genres: ${response.statusText}`);
-  }
+  if (!response.ok) {
+    throw new Error(`Failed to fetch TV genres: ${response.statusText}`);
+  }
 
-  const data = await response.json();
-  return data.genres;
+  const data = await response.json();
+  return data.genres;
 };
 
+// ENHANCEMENT: Changed caching to 24 hours (86400 seconds)
 export async function getPopularTVShows(page: number = 1): Promise<{ results: TVShow[]; total_pages: number }> {
-  const url = `${BASE_URL}/tv/popular?api_key=${API_KEY}&page=${page}&include_adult=false`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error('Failed to fetch popular TV shows');
-  }
-  const data = await res.json();
-  return { results: data.results, total_pages: data.total_pages };
+  const url = `${BASE_URL}/tv/popular?api_key=${API_KEY}&page=${page}&include_adult=false`;
+  const res = await fetch(url, { next: { revalidate: 86400 } });
+  if (!res.ok) {
+    throw new Error('Failed to fetch popular TV shows');
+  }
+  const data = await res.json();
+  return { results: data.results, total_pages: data.total_pages };
 }
 
+// ENHANCEMENT: Changed caching to 24 hours (86400 seconds)
 export async function getPopularMovies(page: number = 1): Promise<{ results: Movie[]; total_pages: number }> {
-  const url = `${BASE_URL}/movie/popular?api_key=${API_KEY}&page=${page}&include_adult=false&certification_country=US&certification.lte=R`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error('Failed to fetch popular movies');
-  }
-  const data = await res.json();
-  return { results: data.results, total_pages: data.total_pages };
+  const url = `${BASE_URL}/movie/popular?api_key=${API_KEY}&page=${page}&include_adult=false&certification_country=US&certification.lte=R`;
+  const res = await fetch(url, { next: { revalidate: 86400 } });
+  if (!res.ok) {
+    throw new Error('Failed to fetch popular movies');
+  }
+  const data = await res.json();
+  return { results: data.results, total_pages: data.total_pages };
 }
 
-// UPDATED: Return full TMDBListResponse
+// ENHANCEMENT: Changed caching to 24 hours (86400 seconds)
 export async function getTrendingTVShows(): Promise<TMDBListResponse<TVShow>> {
-  const url = `${BASE_URL}/trending/tv/week?api_key=${API_KEY}`;
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error('Failed to fetch trending TV shows');
-  }
-  const data = await response.json();
-  return data;
+  const url = `${BASE_URL}/trending/tv/week?api_key=${API_KEY}`;
+  const response = await fetch(url, { next: { revalidate: 86400 } });
+  if (!response.ok) {
+    throw new Error('Failed to fetch trending TV shows');
+  }
+  const data = await response.json();
+  return data;
 };
 
+// ENHANCEMENT: Changed caching to 24 hours (86400 seconds)
 export async function getMovieRecommendations(movieId: number): Promise<Movie[]> {
-  try {
-    const response = await fetch(`${BASE_URL}/movie/${movieId}/recommendations?api_key=${API_KEY}&language=en-US&page=1&include_adult=false`);
-    if (response.status === 404) {
-      console.log(`No recommendations found for movie ID ${movieId}. Returning popular movies as a fallback.`);
-      const popularMovies = await getPopularMovies(1);
-      return popularMovies.results;
-    }
+  try {
+    const response = await fetch(`${BASE_URL}/movie/${movieId}/recommendations?api_key=${API_KEY}&language=en-US&page=1&include_adult=false`, { next: { revalidate: 86400 } });
+    if (response.status === 404) {
+      console.log(`No recommendations found for movie ID ${movieId}. Returning popular movies as a fallback.`);
+      const popularMovies = await getPopularMovies(1);
+      return popularMovies.results;
+    }
 
-    if (!response.ok) {
-      throw new Error(`Error fetching movie recommendations for ID ${movieId}: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    return data.results;
-  } catch (error) {
-    console.error(`Failed to fetch movie recommendations for ID ${movieId}:`, error);
-    return [];
-  }
+    if (!response.ok) {
+      throw new Error(`Error fetching movie recommendations for ID ${movieId}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.results;
+  } catch (error) {
+    console.error(`Failed to fetch movie recommendations for ID ${movieId}:`, error);
+    return [];
+  }
 }
 
+// ENHANCEMENT: Changed caching to 24 hours (86400 seconds)
 export async function getTVShowRecommendations(tvId: number): Promise<TVShow[]> {
-  try {
-    const response = await fetch(`${BASE_URL}/tv/${tvId}/recommendations?api_key=${API_KEY}&language=en-US&page=1&include_adult=false`);
-    
-    if (response.status === 404) {
-      console.log(`No recommendations found for TV show ID ${tvId}. Returning popular TV shows as a fallback.`);
-      const popularTVShows = await getPopularTVShows(1);
-      return popularTVShows.results;
-    }
+  try {
+    const response = await fetch(`${BASE_URL}/tv/${tvId}/recommendations?api_key=${API_KEY}&language=en-US&page=1&include_adult=false`, { next: { revalidate: 86400 } });
+    
+    if (response.status === 404) {
+      console.log(`No recommendations found for TV show ID ${tvId}. Returning popular TV shows as a fallback.`);
+      const popularTVShows = await getPopularTVShows(1);
+      return popularTVShows.results;
+    }
 
-    if (!response.ok) {
-      throw new Error(`Error fetching TV show recommendations for ID ${tvId}: ${response.statusText}`);
-    }
-    const data = await response.json();
-    return data.results as TVShow[];
-  } catch (error) {
-    console.error(`Failed to fetch TV show recommendations for ID ${tvId}:`, error);
-    return [];
-  }
+    if (!response.ok) {
+      throw new Error(`Error fetching TV show recommendations for ID ${tvId}: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data.results as TVShow[];
+  } catch (error) {
+    console.error(`Failed to fetch TV show recommendations for ID ${tvId}:`, error);
+    return [];
+  }
 }
 
 // CORRECTED: Multi-search result item interface
@@ -495,27 +502,27 @@ export interface MultiSearchResults {
   total_results: number;
 }
 
-// New function to perform a multi-search
+// Note: Kept search dynamic without cache to ensure searches are completely real-time
 export async function searchMulti(query: string, page: number = 1): Promise<MultiSearchResults> {
-  const url = `${BASE_URL}/search/multi?query=${encodeURIComponent(query)}&page=${page}&language=en-US`;
-  try {
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_ACCESS_TOKEN}`,
-      },
-    });
+  const url = `${BASE_URL}/search/multi?query=${encodeURIComponent(query)}&page=${page}&language=en-US`;
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_ACCESS_TOKEN}`,
+      },
+    });
 
-    if (!response.ok) {
-      console.error(`TMDB API Error: ${response.status} ${response.statusText}`);
-      throw new Error('Failed to fetch search results.');
-    }
+    if (!response.ok) {
+      console.error(`TMDB API Error: ${response.status} ${response.statusText}`);
+      throw new Error('Failed to fetch search results.');
+    }
 
-    const data: MultiSearchResults = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error in searchMulti function:", error);
-    throw error;
-  }
+    const data: MultiSearchResults = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error in searchMulti function:", error);
+    throw error;
+  }
 }
 
 export const getYouTubeEmbedUrl = (key: string): string => {
@@ -565,105 +572,106 @@ export const getVideasyTvUrl = (tmdbId: number, seasonNumber: number, episodeNum
   return `${VIDEASY_BASE_URL}/tv/${tmdbId}/${seasonNumber}/${episodeNumber}?${params.toString()}`;
 };
 
-// NEW: Discover functions to be used on movies/page.tsx and tv/page.tsx
+// ENHANCEMENT: Changed caching to 24 hours (86400 seconds)
 export async function getDiscoverMovies({
-  page = 1,
-  genres = null,
-  year = null,
-  sortBy = 'popularity.desc',
+  page = 1,
+  genres = null,
+  year = null,
+  sortBy = 'popularity.desc',
 }: {
-  page?: number;
-  genres?: string | null;
-  year?: number | null;
-  sortBy?: string;
+  page?: number;
+  genres?: string | null;
+  year?: number | null;
+  sortBy?: string;
 }): Promise<TMDBListResponse<Movie>> {
-  const params = new URLSearchParams({
-    api_key: process.env.NEXT_PUBLIC_TMDB_API_KEY!,
-    language: 'en-US',
-    page: page.toString(),
-    sort_by: sortBy,
-  });
+  const params = new URLSearchParams({
+    api_key: process.env.NEXT_PUBLIC_TMDB_API_KEY!,
+    language: 'en-US',
+    page: page.toString(),
+    sort_by: sortBy,
+  });
 
-  if (genres) {
-    params.append('with_genres', genres);
-  }
-  if (year) {
-    params.append('primary_release_year', year.toString());
-  }
+  if (genres) {
+    params.append('with_genres', genres);
+  }
+  if (year) {
+    params.append('primary_release_year', year.toString());
+  }
 
-  const url = `${BASE_URL}/discover/movie?${params.toString()}`;
-  const response = await fetch(url, { next: { revalidate: 3600 } });
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch movies');
-  }
+  const url = `${BASE_URL}/discover/movie?${params.toString()}`;
+  const response = await fetch(url, { next: { revalidate: 86400 } });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch movies');
+  }
 
-  const data = await response.json();
-  return data;
+  const data = await response.json();
+  return data;
 }
 
+// ENHANCEMENT: Changed caching to 24 hours (86400 seconds)
 export async function getDiscoverTVShows({
-  page = 1,
-  genres = null,
-  year = null,
-  sortBy = 'popularity.desc',
+  page = 1,
+  genres = null,
+  year = null,
+  sortBy = 'popularity.desc',
 }: {
-  page?: number;
-  genres?: string | null;
-  year?: number | null;
-  sortBy?: string;
+  page?: number;
+  genres?: string | null;
+  year?: number | null;
+  sortBy?: string;
 }): Promise<TMDBListResponse<TVShow>> {
-  const params = new URLSearchParams({
-    api_key: process.env.NEXT_PUBLIC_TMDB_API_KEY!,
-    language: 'en-US',
-    page: page.toString(),
-    sort_by: sortBy,
-  });
+  const params = new URLSearchParams({
+    api_key: process.env.NEXT_PUBLIC_TMDB_API_KEY!,
+    language: 'en-US',
+    page: page.toString(),
+    sort_by: sortBy,
+  });
 
-  if (genres) {
-    params.append('with_genres', genres);
-  }
-  if (year) {
-    params.append('first_air_date_year', year.toString());
-  }
+  if (genres) {
+    params.append('with_genres', genres);
+  }
+  if (year) {
+    params.append('first_air_date_year', year.toString());
+  }
 
-  const url = `${BASE_URL}/discover/tv?${params.toString()}`;
-  const response = await fetch(url, { next: { revalidate: 3600 } });
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch TV shows');
-  }
+  const url = `${BASE_URL}/discover/tv?${params.toString()}`;
+  const response = await fetch(url, { next: { revalidate: 86400 } });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch TV shows');
+  }
 
-  const data = await response.json();
-  return data;
+  const data = await response.json();
+  return data;
 }
 
-// NEW: Add discoverContent function for streaming platforms
 export const WATCH_PROVIDER_IDS = {
-  NETFLIX: 8,
-  HULU: 15,
-  DISNEY_PLUS: 337,
-  AMAZON_PRIME_VIDEO: 9,
-  MAX: 112,
+  NETFLIX: 8,
+  HULU: 15,
+  DISNEY_PLUS: 337,
+  AMAZON_PRIME_VIDEO: 9,
+  MAX: 112,
 };
 
+// ENHANCEMENT: Changed caching to 24 hours (86400 seconds)
 export const discoverContent = async <T extends Movie | TVShow>(
-  type: 'movie' | 'tv',
-  page: number = 1,
-  providers: number[] = [],
-  sort_by: string = 'popularity.desc'
+  type: 'movie' | 'tv',
+  page: number = 1,
+  providers: number[] = [],
+  sort_by: string = 'popularity.desc'
 ): Promise<TMDBListResponse<T> | null> => {
-  try {
-    const providerList = providers.join('|');
-    const url = `${BASE_URL}/discover/${type}?api_key=${API_KEY}&page=${page}&with_watch_providers=${providerList}&watch_region=US&sort_by=${sort_by}`;
-    
-    const response = await fetch(url, { next: { revalidate: 3600 } });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch ${type} content`);
-    }
-    return response.json();
-  } catch (error) {
-    console.error(`Error fetching discovered ${type} content:`, error);
-    return null;
-  }
+  try {
+    const providerList = providers.join('|');
+    const url = `${BASE_URL}/discover/${type}?api_key=${API_KEY}&page=${page}&with_watch_providers=${providerList}&watch_region=US&sort_by=${sort_by}`;
+    
+    const response = await fetch(url, { next: { revalidate: 86400 } });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${type} content`);
+    }
+    return response.json();
+  } catch (error) {
+    console.error(`Error fetching discovered ${type} content:`, error);
+    return null;
+  }
 };

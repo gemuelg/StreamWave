@@ -1,3 +1,4 @@
+// src/app/home/page.tsx
 import {
   getTrendingMovies,
   getNowPlayingMovies,
@@ -13,7 +14,6 @@ import {
 } from '@/lib/tmdb';
 import HomeContent from '@/components/HomeContent';
 import { redirect } from 'next/navigation';
-import axios from 'axios';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 // Interfaces for data fetching
@@ -91,10 +91,13 @@ const fetchPersonalizedContent = async (supabase: any, user: any) => {
   try {
     if (genreIds.length > 0) {
       console.log("Fetching genre recommendations for IDs:", genreIds);
-      const res = await axios.get(
-        `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreIds.join(',')}&sort_by=popularity.desc&vote_count.gte=20`
+      // ENHANCEMENT: Swapped axios for native fetch with caching
+      const res = await fetch(
+        `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreIds.join(',')}&sort_by=popularity.desc&vote_count.gte=20`,
+        { next: { revalidate: 3600 } }
       );
-      const genreRecommendations = res.data.results.map((item: any) => ({ ...item, media_type: 'movie' }));
+      const data = await res.json();
+      const genreRecommendations = data.results.map((item: any) => ({ ...item, media_type: 'movie' }));
       allRecommendations.push(...genreRecommendations);
       console.log(`Found ${genreRecommendations.length} genre-based recommendations.`);
     }
@@ -102,11 +105,14 @@ const fetchPersonalizedContent = async (supabase: any, user: any) => {
     if (specificTitles.length > 0) {
       console.log("Fetching recommendations for specific titles:", specificTitles);
       const titlePromises = specificTitles.map(async (item) => {
-        const res = await axios.get(
-          `https://api.themoviedb.org/3/${item.interest_type}/${item.interest_id}/recommendations?api_key=${TMDB_API_KEY}`
+        // ENHANCEMENT: Swapped axios for native fetch with caching
+        const res = await fetch(
+          `https://api.themoviedb.org/3/${item.interest_type}/${item.interest_id}/recommendations?api_key=${TMDB_API_KEY}`,
+          { next: { revalidate: 3600 } }
         );
+        const data = await res.json();
         // Explicitly type the result of the map function
-        return res.data.results.map((rec: TMDBMedia) => ({ ...rec, media_type: item.interest_type }));
+        return data.results.map((rec: TMDBMedia) => ({ ...rec, media_type: item.interest_type }));
       });
       const titleRecommendations = (await Promise.all(titlePromises)).flat();
       allRecommendations.push(...titleRecommendations);

@@ -118,7 +118,7 @@ const MovieCard: React.FC<MovieCardProps> = (props) => {
                  bg-secondaryBg cursor-pointer transition-transform duration-300 ease-in-out
                  transform"
     >
-      <Link href={linkHref} passHref>
+      <Link href={linkHref} passHref prefetch={false}>
         <div className="relative w-full h-auto pb-[150%] bg-gray-700">
           <Image
             src={imageUrl}
