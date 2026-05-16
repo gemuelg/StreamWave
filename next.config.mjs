@@ -1,9 +1,9 @@
-// next.config.mjs - ABSOLUTELY MINIMAL AND SAFE CONFIGURATION
+// next.config.mjs
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Your existing image configuration
   images: {
+    unoptimized: true, // THIS KILLS THE VERCEL INVOCATION SPIKE
     loader: 'custom',
     loaderFile: './src/lib/tmdb-image-loader.js',
     remotePatterns: [
@@ -15,17 +15,7 @@ const nextConfig = {
       },
     ],
   },
-  
-  // CRITICAL: Keep the native, stable SWC minifier
   swcMinify: true,
-
-  // IMPORTANT: REMOVE ALL PROBLEMATIC EXPERIMENTAL KEYS
-  // No 'experimental' object is included here.
-
-  // Remove the custom webpack function
-  webpack: (config, { isServer, dev }) => {
-    return config;
-  },
 };
 
 export default nextConfig;

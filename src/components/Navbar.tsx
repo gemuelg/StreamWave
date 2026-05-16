@@ -92,20 +92,20 @@ const Navbar: React.FC = () => {
     return (
         <header className="fixed top-0 left-0 w-full bg-primaryBg bg-opacity-70 backdrop-blur-lg z-50 shadow-2xl" role="banner">
             <nav className="px-4 py-4 flex items-center justify-between" aria-label="Main navigation links">
-                <Link href="/" className="flex items-center space-x-1 hover:opacity-80 transition-opacity" onClick={closeMenu}>
+                <Link href="/" prefetch={false} className="flex items-center space-x-1 hover:opacity-80 transition-opacity" onClick={closeMenu}>
                     <span className="text-2xl font-extrabold text-textLight">Stream</span>
                     <span className="text-2xl font-light text-accentBlue">Wave</span>
                 </Link>
                 
                 <div className="hidden min-[927px]:flex items-center justify-between flex-1 pl-12 pr-4">
                     <div className="flex items-center gap-6 lg:gap-8 xl:gap-10">
-                        <Link href="/home" className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold">
+                        <Link href="/home" prefetch={false} className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold">
                             Home
                         </Link>
-                        <Link href="/movies" className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold">
+                        <Link href="/movies" prefetch={false} className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold">
                             Movies
                         </Link>
-                        <Link href="/tv" className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold">
+                        <Link href="/tv" prefetch={false} className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold">
                             TV Shows
                         </Link>
                     </div>
@@ -158,7 +158,7 @@ const Navbar: React.FC = () => {
                                         <div className="px-4 py-2 text-textLight font-semibold border-b border-gray-600">
                                             {username ? `Hello, ${username}` : 'My Account'}
                                         </div>
-                                        <Link href="/watchlist" className="block px-4 py-2 text-textMuted hover:bg-secondaryBg/70 transition-colors" onClick={() => setIsUserMenuOpen(false)}>
+                                        <Link href="/watchlist" prefetch={false} className="block px-4 py-2 text-textMuted hover:bg-secondaryBg/70 transition-colors" onClick={() => setIsUserMenuOpen(false)}>
                                             Watchlist
                                         </Link>
                                         <button
@@ -172,7 +172,8 @@ const Navbar: React.FC = () => {
                             </div>
                         ) : (
                             <Link 
-                                href="/auth" 
+                                href="/auth"
+                                prefetch={false} 
                                 className="relative overflow-hidden border-2 border-accentBlue text-white px-6 py-1 rounded-full text-sm font-semibold transition-all duration-300 group"
                             >
                                 <span className="relative z-10 transition-colors duration-300 group-hover:text-textLight">
@@ -198,7 +199,7 @@ const Navbar: React.FC = () => {
                                     <div className="px-4 py-2 text-textLight font-semibold border-b border-gray-600">
                                         {username ? `Hello, ${username}` : 'My Account'}
                                     </div>
-                                    <Link href="/watchlist" className="block px-4 py-2 text-textMuted hover:bg-secondaryBg/70 transition-colors" onClick={() => setIsUserMenuOpen(false)}>
+                                    <Link href="/watchlist" prefetch={false} className="block px-4 py-2 text-textMuted hover:bg-secondaryBg/70 transition-colors" onClick={() => setIsUserMenuOpen(false)}>
                                         Watchlist
                                     </Link>
                                     <button
@@ -249,18 +250,18 @@ const Navbar: React.FC = () => {
                             <MagnifyingGlassIcon className="h-5 w-5" />
                         </button>
                     </form>
-                    <Link href="/home" onClick={closeMenu} className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold w-full text-center py-2">
+                    <Link href="/home" prefetch={false} onClick={closeMenu} className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold w-full text-center py-2">
                         Home
                     </Link>
-                    <Link href="/movies" onClick={closeMenu} className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold w-full text-center py-2">
+                    <Link href="/movies" prefetch={false} onClick={closeMenu} className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold w-full text-center py-2">
                         Movies
                     </Link>
-                    <Link href="/tv" onClick={closeMenu} className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold w-full text-center py-2">
+                    <Link href="/tv" prefetch={false} onClick={closeMenu} className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold w-full text-center py-2">
                         TV Shows
                     </Link>
                     
                     {!user && (
-                        <Link href="/auth" onClick={closeMenu} className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold w-full text-center py-2">
+                        <Link href="/auth" prefetch={false} onClick={closeMenu} className="text-textLight hover:text-accentBlue transition-colors text-md font-semibold w-full text-center py-2">
                             <span className="inline-flex items-center space-x-2">
                                 <UserIcon className="h-5 w-5" />
                                 <span>Sign In / Register</span>

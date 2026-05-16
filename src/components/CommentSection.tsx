@@ -1,3 +1,4 @@
+// src/components/CommentSection.tsx
 'use client';
 
 import React, { useState, useEffect, FormEvent } from 'react';
@@ -264,7 +265,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({ mediaId, mediaType }) =
               </svg>
             </div>
             <div className="flex-1 text-gray-400">
-              You must be <Link href="/login" className="text-accentBlue hover:underline">login</Link> to post a comment.
+              {/* ENHANCEMENT: Fixed path and added prefetch={false} */}
+              You must be <Link href="/auth" prefetch={false} className="text-accentBlue hover:underline">logged in</Link> to post a comment.
             </div>
           </div>
           <div className="relative">

@@ -90,9 +90,11 @@ export default function SearchContent() {
   useEffect(() => {
     const fetchGenresData = async () => {
       try {
-        // --- CORRECTED FUNCTION CALLS
-        const movieGenres = await getMovieGenres();
-        const tvGenres = await getTVGenres();
+        // ENHANCEMENT: Fetch both genre lists at the exact same time to cut loading time in half!
+        const [movieGenres, tvGenres] = await Promise.all([
+          getMovieGenres(),
+          getTVGenres()
+        ]);
         setGenres([...movieGenres, ...tvGenres]);
       } catch (err) {
         console.error("Failed to fetch genres:", err);
