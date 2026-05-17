@@ -20,7 +20,7 @@
     "axios": "^1.11.0",
     "cheerio": "^1.1.2",
     "hls.js": "^1.6.10",
-    "next": "^14.2.5",
+    "next": "^14.2.35",
     "node-html-parser": "^7.0.1",
     "playwright": "^1.55.0",
     "postcss": "^8.5.6",
