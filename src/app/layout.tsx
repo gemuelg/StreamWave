@@ -5,7 +5,6 @@ import './globals.css';
 import { ReactNode } from 'react';
 import Navbar from '@/components/Navbar';
 import AuthListener from '@/components/AuthListener';
-import { Analytics } from '@vercel/analytics/next';
 // NOTE: next/script is still imported for the Right-Click script, 
 // but is no longer used for AdSense.
 import Script from 'next/script'; 
@@ -65,7 +64,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <main>{children}</main>
           <div id="portal-root" />
           <AuthListener />
-          <Analytics />
+          
         
           {/* 1. The Right-Click Disabling Script (Still uses Next.js Script component) */}
           <Script 
