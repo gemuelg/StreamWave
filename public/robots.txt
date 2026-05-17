@@ -2,9 +2,14 @@
 User-agent: Amazonbot
 Disallow: /
 
-# Block OpenAI's GPTBot (already added)
+# Block OpenAI's GPTBot
 User-agent: GPTBot
 Disallow: /
 
+# General rules for ALL other normal bots (Google, Bing, etc.)
+User-agent: *
+Crawl-delay: 10
+Disallow: /search
+Disallow: /auth
 
 Sitemap: https://streamwave.xyz/sitemap.xml
