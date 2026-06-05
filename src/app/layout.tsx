@@ -27,6 +27,7 @@ export const metadata = {
 
   // 🚀 MONETAG VERIFICATION CODE
   other: {
+    'clckd': 'a968def7ce2c2c400ed1fba93b158fc9',
     'monetag': 'fc17bd00734d7be1895a7fbfe074a5b2',
     'google-adsense-account': 'ca-pub-4043491676034249',
   },
@@ -72,13 +73,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             dangerouslySetInnerHTML={{ __html: disableRightClickScript }}
             strategy="beforeInteractive"
           />
-          {/* 🚀 MONETAG AD TAG 🚀 */}
+          {/* 🚀 MONETAG AD TAG 🚀 
           <script 
             src="https://quge5.com/88/tag.min.js" 
             data-zone="185662" 
             async 
             data-cfasync="false"
-          ></script>
+          ></script>*/}
 
           {/* 🚀 ADHOC HTML SCRIPT TAG FOR ADSENSE 🚀
              This standard script tag avoids all Next.js lifecycle issues.
