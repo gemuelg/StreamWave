@@ -5,10 +5,8 @@ import './globals.css';
 import { ReactNode } from 'react';
 import Navbar from '@/components/Navbar';
 import AuthListener from '@/components/AuthListener';
-// NOTE: next/script is still imported for the Right-Click script, 
-// but is no longer used for AdSense.
 import Script from 'next/script'; 
-
+import ClickaduAds from '@/components/ClickaduAds'; // 👈 Imported the fixed ad layer
 
 const BASE_URL = 'https://www.streamwave.xyz'; 
 
@@ -25,7 +23,7 @@ export const metadata = {
   applicationName: 'StreamWave',
   keywords: ['streaming platform', 'movie database', 'TV shows', 'watchlist', 'discover movies', 'latest trailers'],
 
-  // 🚀 MONETAG VERIFICATION CODE
+  // 🚀 ACTIVE AD NETWORK VERIFICATION CODES
   other: {
     'clckd': 'a968def7ce2c2c400ed1fba93b158fc9',
     'monetag': 'fc17bd00734d7be1895a7fbfe074a5b2',
@@ -43,36 +41,37 @@ export const metadata = {
   },
 };
 
-// =========================================================================
-// SCRIPT CONSTANTS 
-// =========================================================================
-
-// Right-Click Disabling Script (remains the same)
+// Right-Click Disabling Script
 const disableRightClickScript = `
   document.addEventListener('contextmenu', function(e) {
     e.preventDefault();
   });
 `;
 
-// =========================================================================
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      {/* 🛑 REMOVED THE <Script strategy="beforeInteractive"> for AdSense 🛑 */}
-      
       <body>
           <Navbar />
           <main>{children}</main>
           <div id="portal-root" />
           <AuthListener />
           
-        
           {/* 1. The Right-Click Disabling Script (Still uses Next.js Script component) */}
           <Script 
             id="disable-right-click"
             dangerouslySetInnerHTML={{ __html: disableRightClickScript }}
             strategy="beforeInteractive"
           />
+
+          {/* ============================================================= */}
+          {/* 🚀 CLICKADU OPERATIONAL LAYER INTEGRATION 🚀                 */}
+          {/* ============================================================= */}
+          
+          <ClickaduAds />
+
+          {/* ------------------------------------------------------------- */}
+
           {/* 🚀 MONETAG AD TAG 🚀 
           <script 
             src="https://quge5.com/88/tag.min.js" 
@@ -82,8 +81,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           ></script>*/}
 
           {/* 🚀 ADHOC HTML SCRIPT TAG FOR ADSENSE 🚀
-             This standard script tag avoids all Next.js lifecycle issues.
-          
           <script 
             async 
             src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4043491676034249"
