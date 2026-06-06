@@ -535,7 +535,7 @@ export const getYouTubeWatchUrl = (key: string): string => {
 
 const HN_EMBED_BASE_URL = 'https://vidsrc.cc/v3/embed';
 const MULTI_EMBED_BASE_URL = 'https://player.vidplus.to';
-const VIDEASY_BASE_URL = 'https://player.videasy.net';
+const VIDEASY_BASE_URL = 'https://vidlink.pro';
 const THEME_COLOR = '8B5CF6';
 
 export const getHnEmbedMovieUrl = (tmdbId: number): string => {
