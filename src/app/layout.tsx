@@ -6,7 +6,6 @@ import { ReactNode } from 'react';
 import Navbar from '@/components/Navbar';
 import AuthListener from '@/components/AuthListener';
 import Script from 'next/script'; 
-import ClickaduAds from '@/components/ClickaduAds'; // 👈 Imported the fixed ad layer
 
 const BASE_URL = 'https://www.streamwave.xyz'; 
 
@@ -25,8 +24,7 @@ export const metadata = {
 
   // 🚀 ACTIVE AD NETWORK VERIFICATION CODES
   other: {
-    'clckd': 'a968def7ce2c2c400ed1fba93b158fc9',
-    'monetag': 'fc17bd00734d7be1895a7fbfe074a5b2',
+    'monetag': 'ad854dacaea5d7f56b7849ec18d067fe',
     'google-adsense-account': 'ca-pub-4043491676034249',
   },
   // ----------------------------------------
@@ -68,7 +66,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           {/* 🚀 CLICKADU OPERATIONAL LAYER INTEGRATION 🚀                 */}
           {/* ============================================================= */}
           
-          <ClickaduAds />
 
           {/* ------------------------------------------------------------- */}
 
