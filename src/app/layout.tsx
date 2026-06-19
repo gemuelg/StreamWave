@@ -71,25 +71,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             strategy="afterInteractive"
           />
 
-          {/* Engine Tag 2: Supplementary Pipeline (Zone 11166121) */}
-          <Script
-            id="monetag-extra-tag"
-            src="https://nap5k.com/tag.min.js"
-            data-zone="11166121"
-            data-cfasync="false"
-            strategy="afterInteractive"
-          />
-
-          {/* Engine Tag 3: Vignette Specialized Channel (Zone 11166122) */}
-          <Script
-            id="monetag-vignette-tag"
-            src="https://n6wxm.com/vignette.min.js"
-            data-zone="11166122"
-            data-cfasync="false"
-            strategy="afterInteractive"
-          />
           
-          {/* ============================================================= */}
       </body>
     </html>
   );
