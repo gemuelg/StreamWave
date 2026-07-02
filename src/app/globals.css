@@ -7,37 +7,37 @@
 /* 1. RESET: Allow standard flow on HTML/BODY */
 html,
 body {
-    @apply h-full antialiased;
-    height: 100%; /* Must be 100%, not !important, to respect natural flow */
-    overflow: auto; /* Reset to default */
-    margin: 0;
-    padding: 0;
+  @apply h-full antialiased;
+  height: 100%; /* Must be 100%, not !important, to respect natural flow */
+  overflow: auto; /* Reset to default */
+  margin: 0;
+  padding: 0;
 }
 
 body {
-    @apply bg-primaryBg text-textLight;
-    position: relative; /* Reset from !important */
+  @apply bg-primaryBg text-textLight;
+  position: relative; /* Reset from !important */
 }
 
 #page-content-wrapper {
-    min-height: 100vh;
-    padding-bottom: 75px !important; 
-    margin: 0 !important; 
-    box-sizing: border-box;
-    width: 100%;
+  min-height: 100vh;
+  padding-bottom: 75px !important;
+  margin: 0 !important;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 main {
-    height: auto !important;
-    overflow-y: visible !important;
-    padding-bottom: 0 !important;
-    margin: 0 !important; 
+  height: auto !important;
+  overflow-y: visible !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
 }
 
 /* 4. FOOTER ADJUSTMENT: If you have a separate Footer component */
 footer {
-    padding-bottom: 0; /* Remove unnecessary padding if the footer is inside the wrapper */
-    /* If your footer is sticky/fixed, its CSS must be checked separately */
+  padding-bottom: 0; /* Remove unnecessary padding if the footer is inside the wrapper */
+  /* If your footer is sticky/fixed, its CSS must be checked separately */
 }
 
 /* Custom Swiper Styles for Pagination */

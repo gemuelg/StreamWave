@@ -1,4 +1,3 @@
-// src/components/CommentSection.tsx
 'use client';
 
 import React, { useState, useEffect, FormEvent } from 'react';
@@ -19,12 +18,10 @@ interface CommentFormProps {
   onCancelReply?: () => void;
 }
 
-// New type that includes the nested 'replies' property
 type CommentNode = CommentWithStats & {
   replies: CommentNode[];
 };
 
-// Helper to format timestamps
 const formatTimestamp = (timestamp: string) => {
   const now = new Date();
   const date = new Date(timestamp);
@@ -32,26 +29,19 @@ const formatTimestamp = (timestamp: string) => {
   const diffInHours = Math.floor(diffInMinutes / 60);
   const diffInDays = Math.floor(diffInHours / 24);
 
-  if (diffInMinutes < 60) {
-    return `${diffInMinutes} minutes ago`;
-  } else if (diffInHours < 24) {
-    return `${diffInHours} hours ago`;
-  } else {
-    return `${diffInDays} days ago`;
-  }
+  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+  if (diffInHours < 24) return `${diffInHours}h ago`;
+  return `${diffInDays}d ago`;
 };
 
-// New helper function to organize comments into a tree structure
 const groupCommentsByParent = (comments: CommentWithStats[]): CommentNode[] => {
   const commentMap: { [key: number]: CommentNode } = {};
   const rootComments: CommentNode[] = [];
 
-  // Create a map and initialize replies array
   comments.forEach(comment => {
     commentMap[comment.id] = { ...comment, replies: [] };
   });
 
-  // Organize comments into the tree
   comments.forEach(comment => {
     if (comment.parent_comment_id) {
       const parent = commentMap[comment.parent_comment_id];
@@ -66,7 +56,6 @@ const groupCommentsByParent = (comments: CommentWithStats[]): CommentNode[] => {
   return rootComments;
 };
 
-// A sub-component for the comment form to handle replies
 const CommentForm: React.FC<CommentFormProps> = ({ onPost, isPosting, user, parentCommentId, onCancelReply }) => {
   const [content, setContent] = useState('');
 
@@ -78,26 +67,26 @@ const CommentForm: React.FC<CommentFormProps> = ({ onPost, isPosting, user, pare
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
-      <div className="flex items-start space-x-4">
-        <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center text-gray-300 font-semibold text-lg flex-shrink-0">
+    <form onSubmit={handleSubmit} className="flex flex-col space-y-3 w-full">
+      <div className="flex items-start space-x-3">
+        <div className="w-9 h-9 bg-zinc-800 border border-white/10 rounded-full flex items-center justify-center text-zinc-200 font-bold text-sm flex-shrink-0 shadow-inner">
           {user.email?.charAt(0).toUpperCase()}
         </div>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder={parentCommentId ? 'Write a reply...' : 'Leave a comment...'}
-          className="flex-1 w-full p-4 rounded-lg bg-gray-800 text-gray-200 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-accentBlue resize-none"
+          placeholder={parentCommentId ? 'Write a professional reply...' : 'Join the discussion...'}
+          className="flex-1 w-full p-3 text-sm rounded-xl bg-white/[0.02] text-zinc-100 border border-white/5 placeholder-zinc-500 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-blue-500/30 resize-none transition-all duration-200"
           rows={parentCommentId ? 2 : 3}
           required
         />
       </div>
-      <div className="flex justify-end space-x-4">
+      <div className="flex justify-end space-x-2">
         {parentCommentId && (
           <button
             type="button"
             onClick={onCancelReply}
-            className="px-6 py-2 rounded-lg font-bold text-gray-400 hover:text-white transition-colors duration-200"
+            className="px-4 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-colors duration-200"
           >
             Cancel
           </button>
@@ -105,10 +94,10 @@ const CommentForm: React.FC<CommentFormProps> = ({ onPost, isPosting, user, pare
         <button
           type="submit"
           disabled={isPosting}
-          className={`px-6 py-2 rounded-lg font-bold transition-colors duration-200 ${
+          className={`px-5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${
             isPosting
-              ? 'bg-gray-600 cursor-not-allowed'
-              : 'bg-accentBlue hover:bg-pink-600 text-white'
+              ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/10'
           }`}
         >
           {isPosting ? 'Posting...' : 'Post'}
@@ -118,7 +107,6 @@ const CommentForm: React.FC<CommentFormProps> = ({ onPost, isPosting, user, pare
   );
 };
 
-// Main Comment Section Component
 const CommentSection: React.FC<CommentSectionProps> = ({ mediaId, mediaType }) => {
   const user = useUser();
   const [comments, setComments] = useState<CommentWithStats[]>([]);
@@ -144,7 +132,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ mediaId, mediaType }) =
 
   const handlePostComment = async (content: string, parentCommentId: number | null) => {
     if (!user) {
-      setError('You must be logged in to post a comment.');
+      setError('Authentication token expired or missing. Please log in.');
       return;
     }
 
@@ -155,66 +143,71 @@ const CommentSection: React.FC<CommentSectionProps> = ({ mediaId, mediaType }) =
       setError(error);
     } else if (data) {
       setError(null);
-      fetchComments(); // Re-fetch all comments to get the new one
-      setReplyingTo(null); // Close reply form
+      fetchComments();
+      setReplyingTo(null);
     }
     setIsPosting(false);
   };
 
   const handleVote = async (commentId: number, voteType: 'like' | 'dislike') => {
     if (!user) {
-      setError('You must be logged in to vote.');
+      setError('You must be authenticated to perform this interaction.');
       return;
     }
     await voteOnComment(commentId, voteType);
-    fetchComments(); // Re-fetch comments to update vote counts
+    fetchComments();
   };
 
-  // Sub-component to render an individual comment
   const renderComment = (comment: CommentNode) => (
-    <div key={comment.id} className="flex flex-col">
-      <div className="flex items-start space-x-4">
-        <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-white text-lg font-semibold flex-shrink-0">
+    <div key={comment.id} className="flex flex-col space-y-2">
+      <div className="flex items-start space-x-3">
+        <div className="w-9 h-9 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-zinc-300 text-sm font-bold flex-shrink-0">
           {comment.profiles?.username?.charAt(0).toUpperCase() || 'U'}
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div className="flex items-center space-x-2">
-            <span className="text-gray-300 font-bold">{comment.profiles?.username || 'Anonymous'}</span>
-            <span className="text-gray-500 text-xs">
-              · {formatTimestamp(comment.created_at)}
+            <span className="text-zinc-200 font-semibold text-sm tracking-tight truncate">
+              {comment.profiles?.username || 'Anonymous User'}
+            </span>
+            <span className="text-zinc-500 text-xs">
+              • {formatTimestamp(comment.created_at)}
             </span>
           </div>
-          <p className="text-gray-200 mt-1">{comment.content}</p>
+          <p className="text-zinc-300 text-sm mt-1 leading-relaxed break-words whitespace-pre-wrap">
+            {comment.content}
+          </p>
 
-          <div className="flex items-center space-x-4 text-gray-400 text-sm mt-2">
-            {/* Like Button */}
+          <div className="flex items-center space-x-4 text-zinc-500 text-xs mt-2">
             <button
               onClick={() => handleVote(comment.id, 'like')}
-              className="flex items-center space-x-1 hover:text-white transition-colors"
+              className="flex items-center space-x-1 hover:text-zinc-200 transition-colors group"
             >
-              <span className="w-4 h-4">👍</span>
+              <svg className="w-3.5 h-3.5 stroke-current fill-none group-hover:text-blue-400" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V2.75a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218M19.5 10.25a2.25 2.25 0 00-2.25-2.25h-5.25l.63-3.03A2.25 2.25 0 009.225 2.5H6.633a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 006.633 17.5h2.626a2.25 2.25 0 002.135-1.582l1.151-3.664a2.25 2.25 0 00-2.135-2.918H6.633z" />
+              </svg>
               <span>{comment.likes_count}</span>
             </button>
-            {/* Dislike Button */}
+            
             <button
               onClick={() => handleVote(comment.id, 'dislike')}
-              className="flex items-center space-x-1 hover:text-white transition-colors"
+              className="flex items-center space-x-1 hover:text-zinc-200 transition-colors group"
             >
-              <span className="w-4 h-4">👎</span>
+              <svg className="w-3.5 h-3.5 stroke-current fill-none group-hover:text-red-400" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.367 13.75c-.806 0-1.533.446-2.031 1.08a9.041 9.041 0 01-2.861 2.4c-.723.384-1.35.956-1.653 1.715a4.498 4.498 0 00-.322 1.672v.672a.75.75 0 01-.75.75 2.25 2.25 0 01-2.25-2.25c0-1.152.26-2.243.723-3.218M4.5 13.75a2.25 2.25 0 002.25 2.25h5.25l-.63 3.03A2.25 2.25 0 0014.775 21.5h2.592a2.25 2.25 0 002.25-2.25V8.75a2.25 2.25 0 00-2.25-2.25h-2.626a2.25 2.25 0 00-2.135 1.582l-1.151 3.664a2.25 2.25 0 002.135 2.918h3.334z" />
+              </svg>
               <span>{comment.dislikes_count}</span>
             </button>
-            {/* Reply Button */}
+
             <button
-              onClick={() => setReplyingTo(comment.id)}
-              className="flex items-center space-x-1 hover:text-white transition-colors"
+              onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+              className="hover:text-zinc-200 transition-colors font-medium"
             >
-              <span>Reply</span>
+              Reply
             </button>
           </div>
 
-          {/* Reply Form */}
           {replyingTo === comment.id && (
-            <div className="mt-4">
+            <div className="mt-3 border-l-2 border-white/5 pl-4 py-1">
               <CommentForm
                 onPost={handlePostComment}
                 isPosting={isPosting}
@@ -227,74 +220,75 @@ const CommentSection: React.FC<CommentSectionProps> = ({ mediaId, mediaType }) =
         </div>
       </div>
 
-      {/* Render Nested Replies */}
       {comment.replies && comment.replies.length > 0 && (
-        <div className="pl-14 pt-4 space-y-6">
+        <div className="border-l border-white/5 pl-6 ml-4 mt-2 space-y-4">
           {comment.replies.map(renderComment)}
         </div>
       )}
     </div>
   );
-  
+
   const rootComments = groupCommentsByParent(comments);
 
   return (
-    <div className="mt-8 p-6 bg-darkOverlay rounded-lg shadow-xl border border-gray-700">
-      
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-white">{comments.length} Comments</h2>
+    <div className="w-full bg-white/[0.01] border border-white/5 backdrop-blur-xl rounded-2xl p-6 shadow-2xl">
+      <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-3">
+        <h2 className="text-sm font-semibold tracking-wider text-blue-400 uppercase">
+          Discussion ({comments.length})
+        </h2>
       </div>
       
-      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+      {error && (
+        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl text-center">
+          {error}
+        </div>
+      )}
       
-      {/* Main Comment Input Section */}
-      {user ? (
-        <CommentForm
-          onPost={handlePostComment}
-          isPosting={isPosting}
-          user={user}
-          parentCommentId={null}
-        />
-      ) : (
-        <div className="space-y-4">
-          <div className="flex items-center space-x-4">
-            <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center text-gray-300 text-sm flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-              </svg>
+      <div className="mb-8">
+        {user ? (
+          <CommentForm
+            onPost={handlePostComment}
+            isPosting={isPosting}
+            user={user}
+            parentCommentId={null}
+          />
+        ) : (
+          <div className="space-y-3 w-full">
+            <div className="flex items-center space-x-3 text-xs text-zinc-400">
+              <div className="w-9 h-9 bg-zinc-900 border border-white/5 rounded-full flex items-center justify-center text-zinc-500">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+              </div>
+              <div>
+                You must be <Link href="/auth" prefetch={false} className="text-blue-400 hover:underline font-semibold">logged in</Link> to post a comment.
+              </div>
             </div>
-            <div className="flex-1 text-gray-400">
-              {/* ENHANCEMENT: Fixed path and added prefetch={false} */}
-              You must be <Link href="/auth" prefetch={false} className="text-accentBlue hover:underline">logged in</Link> to post a comment.
-            </div>
-          </div>
-          <div className="relative">
             <textarea
               disabled
-              placeholder="Leave a comment"
-              className="w-full p-4 rounded-lg bg-gray-800 text-gray-400 border border-gray-700 resize-none cursor-not-allowed"
+              placeholder="Authentication required to input text data..."
+              className="w-full p-3 text-sm rounded-xl bg-white/[0.01] text-zinc-600 border border-white/5 resize-none cursor-not-allowed opacity-50"
               rows={3}
             />
-            <div className="absolute right-4 bottom-4 text-xl text-gray-500">
-              😊
-            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
       
-      {/* Comments List */}
-      {!loading && rootComments.length === 0 && (
-        <p className="text-gray-400 text-center mt-6">No comments yet. Be the first to leave one!</p>
-      )}
-
-      {loading && <p className="text-gray-400 text-center mt-6">Loading comments...</p>}
-      
-      {!loading && rootComments.length > 0 && (
-        <div className="space-y-6 mt-6">
-          {rootComments.map(renderComment)}
-        </div>
-      )}
+      <div className="space-y-6">
+        {loading ? (
+          <div className="text-center py-6 text-xs text-zinc-500 tracking-wide animate-pulse">
+            Syncing discussions database...
+          </div>
+        ) : rootComments.length === 0 ? (
+          <div className="text-center py-8 text-xs text-zinc-500 tracking-wide">
+            No submissions recorded yet. Start the conversation.
+          </div>
+        ) : (
+          <div className="space-y-6 border-t border-white/5 pt-6">
+            {rootComments.map(renderComment)}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

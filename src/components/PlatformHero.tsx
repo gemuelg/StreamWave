@@ -4,13 +4,9 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getImageUrl, Movie, TVShow } from '@/lib/tmdb';
-import { PlayCircleIcon } from '@heroicons/react/24/outline';
+import { PlayIcon } from '@heroicons/react/24/solid';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade } from 'swiper/modules';
-
-// Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/effect-fade';
 
 interface PlatformHeroProps {
   content: (Movie | TVShow)[];
@@ -49,7 +45,7 @@ export default function PlatformHero({ content }: PlatformHeroProps) {
   }
 
   return (
-    <section className="relative w-full h-[60vh] md:h-[70vh] min-h-[400px] mb-12 overflow-hidden">
+    <section className="relative w-full h-[56.25vw] min-h-[550px] max-h-[800px] lg:h-[85vh] overflow-hidden select-none bg-[#040406]">
       <Swiper
         modules={[Autoplay, EffectFade]}
         effect="fade"
@@ -59,13 +55,15 @@ export default function PlatformHero({ content }: PlatformHeroProps) {
         slidesPerView={1}
         loop={true}
         autoplay={{
-          delay: 5000,
+          delay: 6000,
           disableOnInteraction: false,
         }}
         className="w-full h-full"
       >
         {content.map((item) => (
-          <SwiperSlide key={item.id}>
+          <SwiperSlide key={item.id} className="relative w-full h-full">
+            
+            {/* BACKGROUND CANVAS WITH COMPREHENSIVE MULTI-AXIS BLENDING */}
             <div className="absolute inset-0 z-0">
               <Image
                 src={getImageUrl(item.backdrop_path, 'original')}
@@ -73,37 +71,64 @@ export default function PlatformHero({ content }: PlatformHeroProps) {
                 fill
                 style={{ objectFit: 'cover' }}
                 priority
+                className="object-top"
               />
-              {/* UPDATED: Changed the top of the gradient to fade into a dark color */}
-              <div className="absolute inset-0 bg-gradient-to-t from-primaryBg via-primaryBg/70 to-black/60"></div>
+              
+              {/* NEW - Top Bleed Fade: Melts the top asset boundary into your dark #040406 canvas/navbar area */}
+              <div className="absolute inset-0 bg-gradient-to-b from-[#040406] via-[#040406]/30 to-transparent z-[2]" />
+              
+              {/* Right Edge Horizon Fade: Secures text contrast and readability */}
+              <div className="absolute inset-0 bg-gradient-to-l from-[#040406] via-[#040406]/45 to-transparent z-[2]" />
+              
+              {/* Bottom Bleed Fade: Eliminates seams with content rows beneath */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#040406] via-[#040406]/10 to-transparent z-[2]" />
+              
+              {/* Base ambient lighting filter */}
+              <div className="absolute inset-0 bg-black/10 z-[1]" />
             </div>
-            <div className="relative z-10 flex items-end w-full h-full p-6 md:p-12 text-white justify-end">
-              <div className="w-full max-w-2xl text-right">
-                <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-3 drop-shadow-lg">
-                  {getTitle(item)}
-                </h2>
+
+            {/* RIGHT-ALIGNED CONTENT LAYOUT CONTAINER */}
+            <div className="relative z-10 flex items-center w-full h-full px-4 sm:px-8 md:px-[4%] lg:px-[4%] text-white justify-end">
+              <div className="w-full max-w-xl md:max-w-2xl flex flex-col items-end pt-20 md:pt-28 lg:pt-36 text-right">
                 
-                <div className="flex items-center space-x-4 mb-4 text-lg drop-shadow-md justify-end">
-                  {getReleaseYear(item) && <span className="font-semibold">{getReleaseYear(item)}</span>}
-                  <span className="flex items-center space-x-1">
-                    <span>⭐ {getRating(item)}</span>
+                {/* HERO TITLE */}
+                <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-4 tracking-tighter leading-[1.05] text-white font-sans uppercase drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
+                  {getTitle(item)}
+                </h1>
+                
+                {/* METADATA METRICS BAR */}
+                <div className="flex items-center justify-end space-x-3 mb-4 text-xs sm:text-sm md:text-base font-bold text-white drop-shadow-md">
+                  <span className="text-emerald-400 tracking-tight font-sans">
+                    {Math.round((item.vote_average || 7) * 10)}% Match
+                  </span>
+                  <span className="text-zinc-300 font-normal">
+                    {getReleaseYear(item)}
+                  </span>
+                  <span className="flex items-center justify-center bg-transparent border border-zinc-500/60 px-1.5 py-0.5 rounded text-[10px] tracking-widest text-zinc-300 font-mono scale-90">
+                    HD
+                  </span>
+                  <span className="text-zinc-300 font-medium tracking-tight text-xs bg-zinc-800/40 px-2 py-0.5 rounded border border-white/5">
+                    ★ {getRating(item)}
                   </span>
                 </div>
                 
-                <p className="text-base md:text-lg mb-4 line-clamp-3 md:line-clamp-4 drop-shadow-md">
+                {/* PLOT OVERVIEW BLOCK */}
+                <p className="text-xs sm:text-sm md:text-base lg:text-lg text-[#e5e5e5] font-normal leading-normal md:leading-relaxed mb-6 line-clamp-3 md:line-clamp-3 max-w-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] font-sans">
                   {getOverview(item)}
                 </p>
 
+                {/* CALL TO ACTION BUTTON */}
                 <Link
                   href={`/${getType(item) === 'movie' ? 'movies' : 'tv'}/${item.id}`}
-                  className="inline-flex items-center px-6 py-3 md:px-8 md:py-4 bg-accentBlue text-white text-base md:text-lg lg:text-xl font-bold rounded-lg
-                             hover:bg-accentPurple transition-colors duration-300 shadow-xl"
+                  className="inline-flex items-center justify-center px-7 py-2 md:px-8 md:py-3 bg-white text-black text-sm md:text-base font-extrabold rounded-md transition-all duration-200 hover:bg-white/80 active:scale-95 shadow-[0_4px_12px_rgba(0,0,0,0.3)] font-sans tracking-wide"
                 >
-                  Watch Now
-                  <PlayCircleIcon className="ml-2 w-5 h-5 md:ml-3 md:w-6 md:h-6" />
+                  <PlayIcon className="mr-3 w-5 h-5 md:w-6 md:h-6 text-black fill-current" />
+                  Play Now
                 </Link>
+
               </div>
             </div>
+
           </SwiperSlide>
         ))}
       </Swiper>

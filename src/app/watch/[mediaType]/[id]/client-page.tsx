@@ -1,4 +1,3 @@
-// src/app/watch/[mediaType]/[id]/client-page.tsx
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -25,7 +24,7 @@ import {
 } from '@/lib/tmdb';
 import Navbar from '@/components/Navbar';
 import MovieCard from '@/components/MovieCard';
-import { PlayCircleIcon, Bars3Icon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { PlayCircleIcon, Bars3Icon, ChevronDownIcon, StarIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import Image from 'next/image';
 import CommentSection from '@/components/CommentSection';
@@ -72,7 +71,7 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
   const [selectedEpisode, setSelectedEpisode] = useState<number | undefined>(undefined);
   const [showSeasonList, setShowSeasonList] = useState(false);
   
-  const [selectedServer, setSelectedServer] = useState<'multiembed' | 'hnembed' | 'videasy'>('videasy');
+  const [selectedServer, setSelectedServer] = useState<'multiembed' | 'hnembed' | 'videasy'>('multiembed');
 
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const videoPlayerRef = useRef<HTMLDivElement>(null);
@@ -81,6 +80,53 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
   const [stats, setStats] = useState({ averageRating: '0.0', viewsCount: 0 });
 
   const user = useUser();
+
+  // 🛡️ ANTI-DEVTOOLS SHIELD ENGINE
+  useEffect(() => {
+    // Safety check: Do not execute or freeze your browser on localhost while building!
+    if (process.env.NODE_ENV === 'development') return;
+
+    const punishUser = () => {
+      // Slaps the user with an endless page refresh loop if they look behind the curtain
+      window.location.reload();
+    };
+
+    // Method 1: Detect window shrinking from an attached DevTools panel window layout change
+    const threshold = 160; 
+    const sizeChecker = setInterval(() => {
+      const widthExceeded = window.outerWidth - window.innerWidth > threshold;
+      const heightExceeded = window.outerHeight - window.innerHeight > threshold;
+      
+      if (widthExceeded || heightExceeded) {
+        punishUser();
+      }
+    }, 500);
+
+    // Method 2: Recursive Debugger Loop (Crashes and freezes un-docked DevTools windows)
+    const freezer = setInterval(() => {
+      (function () {
+        (function a() {
+          try {
+            (function b(i) {
+              if (("" + i / i).length !== 1 || i % 20 === 0) {
+                (function () {}).constructor("debugger")();
+              } else {
+                debugger;
+              }
+              b(++i);
+            })(0);
+          } catch (e) {
+            setTimeout(a, 100);
+          }
+        })();
+      })();
+    }, 100);
+
+    return () => {
+      clearInterval(sizeChecker);
+      clearInterval(freezer);
+    };
+  }, []);
 
   useEffect(() => {
     const hasReloadedKey = `reloaded_${pathname}`;
@@ -252,7 +298,6 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
   const episodeCount = tvShowDetails?.number_of_episodes;
   const runtime = isTVShow ? tvShowDetails?.episode_run_times?.[0] : movieDetails?.runtime;
 
-
   const currentSeason = selectedSeason && tvShowDetails?.seasons.find(s => s.season_number === selectedSeason);
 
   const words = overview?.split(' ') || [];
@@ -262,76 +307,74 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-primaryBg text-textLight">
-        <svg className="animate-spin h-10 w-10 text-accentBlue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
+      <div className="min-h-screen bg-[#040406] flex items-center justify-center text-white">
+        <div className="w-full max-w-sm p-8 text-center bg-white/[0.01] border border-white/5 backdrop-blur-xl rounded-2xl shadow-2xl">
+          <div className="w-8 h-8 border-2 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-sm text-zinc-400">Loading details...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !content) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-primaryBg text-textLight p-6">
-        <h1 className="text-4xl font-bold text-accentRed mb-4">Error</h1>
-        <p className="text-lg text-textMuted mb-8">{error || "Content not found or an error occurred."}</p>
-        <Link href="/" className="px-6 py-3 bg-accentBlue text-textLight rounded-lg hover:bg-accentPurple transition-colors">
-          Go to Homepage
-        </Link>
+      <div className="min-h-screen bg-[#040406] flex items-center justify-center text-white px-4">
+        <div className="w-full max-w-md p-8 text-center bg-white/[0.01] border border-white/5 backdrop-blur-xl rounded-2xl shadow-xl">
+          <ExclamationTriangleIcon className="w-12 h-12 text-zinc-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">Content Unavailable</h1>
+          <p className="text-sm text-zinc-400 mb-8 leading-relaxed">{error || "The content you are looking for is currently unavailable."}</p>
+          <Link href="/" className="inline-block bg-white/10 hover:bg-white/20 text-white font-medium px-6 py-3 rounded-xl text-sm transition-colors">
+            Return Home
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen text-textLight bg-primaryBg overflow-hidden flex flex-col mt-16">
+    <div className="relative min-h-screen text-white bg-[#040406] overflow-hidden flex flex-col pt-16">
       <Navbar />
 
       {backdropPath && (
         <>
           <div
-            className="absolute inset-0 z-0 bg-cover bg-center opacity-20"
+            className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.05] pointer-events-none transition-opacity duration-1000"
             style={{ backgroundImage: `url(${getImageUrl(backdropPath, 'original')})` }}
-          ></div>
-          <div className="absolute inset-0 z-10"
-            style={{ background: 'radial-gradient(ellipse at center, transparent 0%, rgba(16, 18, 27, 0.9) 80%)' }}
-          ></div>
-          <div className="absolute inset-0 z-10 pointer-events-none"
-            style={{ boxShadow: 'inset 0 0 150px rgba(0,0,0,0.8)' }}>
-          </div>
+          />
+          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-b from-[#040406]/50 via-[#040406] to-[#040406]" />
         </>
       )}
 
-      <div className="relative z-30 animate-fadeIn flex flex-col lg:flex-row gap-8 w-full px-4 md:px-8 lg:px-12 pt-8 md:pt-12 lg:pt-20 pb-8 items-start">
-        <aside
-          className="w-full lg:w-80 order-2 lg:order-1 bg-white/5 backdrop-blur-xl rounded-2xl p-4 flex flex-col border border-white/10"
-        >
+      <div className="max-w-[1440px] mx-auto w-full px-4 md:px-8 lg:px-12 py-8 md:py-12 relative z-30 flex flex-col lg:flex-row gap-8 items-start">
+        
+        <aside className="w-full lg:w-80 order-2 lg:order-1 bg-white/[0.01] border border-white/5 backdrop-blur-xl rounded-2xl p-5 flex flex-col shadow-2xl">
           {isTVShow ? (
             <>
-              <div className="relative mb-4">
+              <div className="relative mb-5">
                 <button
                   onClick={() => setShowSeasonList(!showSeasonList)}
-                  className="w-full bg-secondaryBg text-textLight rounded-xl py-2 pl-4 pr-10 flex items-center justify-between hover:bg-tertiaryBg transition-colors"
+                  className="w-full bg-white/[0.02] border border-white/5 text-white rounded-xl py-3 pl-4 pr-10 flex items-center justify-between hover:bg-white/[0.05] hover:border-white/10 transition-all duration-300 group"
                 >
-                  <div className="flex items-center gap-2 overflow-hidden">
-                    <Bars3Icon className="w-5 h-5 text-textMuted flex-shrink-0" />
-                    <span className="font-semibold text-lg lg:text-base xl:text-lg overflow-hidden text-ellipsis whitespace-nowrap">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <Bars3Icon className="w-4 h-4 text-zinc-400" />
+                    <span className="font-bold text-sm tracking-tight text-ellipsis whitespace-nowrap overflow-hidden">
                       Season {selectedSeason}
                     </span>
                   </div>
-                  <ChevronDownIcon className={`w-5 h-5 text-textMuted transition-transform ${showSeasonList ? 'rotate-180' : ''}`} />
+                  <ChevronDownIcon className={`w-4 h-4 text-zinc-400 transition-transform duration-300 ${showSeasonList ? 'rotate-180' : ''}`} />
                 </button>
+                
                 {showSeasonList && (
-                  <div className="absolute top-full left-0 z-50 mt-2 w-full bg-secondaryBg rounded-lg shadow-lg max-h-[50vh] overflow-y-auto">
+                  <div className="absolute top-full left-0 z-50 mt-2 w-full bg-[#0a0a0f] border border-white/10 rounded-xl shadow-2xl max-h-[40vh] overflow-y-auto backdrop-blur-2xl divide-y divide-white/5">
                     {tvShowDetails?.seasons.map(season => (
                       <button
                         key={season.id}
                         onClick={() => handleSeasonSelect(season.season_number)}
-                        className={`block w-full text-left px-4 py-2 transition-colors
-                                  ${selectedSeason === season.season_number
-                                    ? 'bg-accent text-white'
-                                    : 'text-textMuted hover:bg-tertiaryBg'
-                                  }`}
+                        className={`block w-full text-left px-4 py-3 text-sm transition-colors ${
+                          selectedSeason === season.season_number
+                            ? 'bg-white/5 text-blue-400 font-semibold'
+                            : 'text-zinc-400 hover:bg-white/[0.02] hover:text-white'
+                        }`}
                       >
                         Season {season.season_number}
                       </button>
@@ -339,20 +382,28 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
                   </div>
                 )}
               </div>
-              {selectedSeason && currentSeason && (
+              
+              {selectedSeason && currentSeason ? (
                 <>
-                  <h3 className="font-semibold text-textLight mb-2">Episodes</h3>
-                  <div className="flex-grow">
-                    <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-3 gap-2 pr-2">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-4">
+                    <h3 className="text-xs font-semibold tracking-wider text-zinc-400 uppercase">
+                      Episodes
+                    </h3>
+                    <span className="text-xs text-zinc-400">
+                      {currentSeason.episode_count} Episodes
+                    </span>
+                  </div>
+                  <div className="w-full">
+                    <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-4 gap-2">
                       {Array.from({ length: currentSeason.episode_count || 0 }, (_, i) => i + 1).map(episodeNum => (
                         <button
                           key={episodeNum}
                           onClick={() => handleEpisodeChange(episodeNum)}
-                          className={`p-2 rounded-lg text-center transition-colors text-sm font-semibold
-                                    ${selectedEpisode === episodeNum
-                                      ? 'bg-accent text-white shadow-md'
-                                      : 'bg-secondaryBg hover:bg-tertiaryBg text-textMuted'
-                                    }`}
+                          className={`aspect-square rounded-lg flex items-center justify-center transition-all duration-300 text-sm font-semibold ${
+                            selectedEpisode === episodeNum
+                              ? 'bg-blue-600 text-white font-bold shadow-lg'
+                              : 'bg-white/[0.02] border border-white/5 hover:border-white/20 text-zinc-400 hover:text-white'
+                          }`}
                         >
                           {episodeNum}
                         </button>
@@ -360,23 +411,21 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
                     </div>
                   </div>
                 </>
-              )}
-              {!selectedSeason || !currentSeason && (
-                <div className="text-center p-4 text-textMuted text-sm">
-                  No seasons or episodes available.
+              ) : (
+                <div className="text-center p-6 text-zinc-500 text-sm">
+                  No episodes available.
                 </div>
               )}
             </>
           ) : (
             <>
-              <h3 className="font-semibold text-textLight mb-2">Episodes</h3>
-              <div className="flex-grow">
-                <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-3 gap-2 pr-2">
-                  <button
-                    className={`p-2 rounded-lg text-center transition-colors text-sm font-semibold
-                                    ${selectedEpisode === 1 ? 'bg-accent text-white shadow-md' : 'bg-secondaryBg hover:bg-tertiaryBg text-textMuted'}`}
-                  >
-                    1
+              <h3 className="text-xs font-semibold tracking-wider text-zinc-400 uppercase border-b border-white/5 pb-2 mb-4">
+                Media Info
+              </h3>
+              <div className="w-full">
+                <div className="grid grid-cols-4 gap-2">
+                  <button className="aspect-square rounded-lg flex items-center justify-center bg-blue-600 text-white font-bold text-sm shadow-md">
+                    Full
                   </button>
                 </div>
               </div>
@@ -384,153 +433,163 @@ export default function ClientWatchPage({ params }: WatchPageProps) {
           )}
         </aside>
 
-        <div className={`flex-grow w-full order-1 lg:order-2 flex flex-col`}>
+        <div className="flex-grow w-full order-1 lg:order-2 flex flex-col space-y-4">
           {videoUrl ? (
-            <div ref={videoPlayerRef} className="relative w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-inner shadow-gray-900">
+            <div ref={videoPlayerRef} className="relative w-full aspect-video bg-black border border-white/5 rounded-2xl overflow-hidden shadow-2xl transition-all duration-500">
               <iframe
                 key={videoUrl}
                 src={videoUrl}
                 allowFullScreen
                 frameBorder="0"
-                className="w-full h-full"
-              ></iframe>
+                className="w-full h-full relative z-10"
+              />
             </div>
           ) : (
-            <div ref={videoPlayerRef} className="w-full aspect-video flex items-center justify-center bg-secondaryBg rounded-lg text-textMuted text-lg">
-              Video link not available for this {mediaType}. Please select a season and episode.
+            <div ref={videoPlayerRef} className="w-full aspect-video flex flex-col items-center justify-center bg-white/[0.01] border border-dashed border-white/10 rounded-2xl text-zinc-400 text-sm p-8 text-center">
+              <PlayCircleIcon className="w-12 h-12 text-zinc-600 mb-3 animate-pulse" />
+              Failed to load video stream. Please choose a different option or server.
             </div>
           )}
           
-          <div className="mt-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                        {/* Server Buttons - Updated for mobile horizontal wrap */}
-                        <div className="flex flex-wrap gap-2 justify-start">
-                            <button
-                                onClick={() => setSelectedServer('videasy')}
-                                className={`flex items-center gap-2 px-3 py-1 text-sm rounded-xl font-semibold transition-colors
-                                             ${selectedServer === 'videasy' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
-                                           `}
-                            >
-                                <PlayCircleIcon className="w-4 h-4" /> Server 1
-                            </button>
-                            <button
-                                onClick={() => setSelectedServer('hnembed')}
-                                className={`flex items-center gap-2 px-3 py-1 text-sm rounded-xl font-semibold transition-colors
-                                             ${selectedServer === 'hnembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
-                                           `}
-                            >
-                                <PlayCircleIcon className="w-4 h-4" /> Server 2
-                            </button>
-                            <button
-                                onClick={() => setSelectedServer('multiembed')}
-                                className={`flex items-center gap-2 px-3 py-1 text-sm rounded-xl font-semibold transition-colors
-                                             ${selectedServer === 'multiembed' ? 'bg-accent text-white' : 'bg-secondaryBg text-textMuted hover:bg-tertiaryBg'}
-                                           `}
-                            >
-                                <PlayCircleIcon className="w-4 h-4" /> Server 3
-                            </button>
-                        </div>
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white/[0.01] border border-white/5 p-4 rounded-xl backdrop-blur-md">
+            <div className="flex flex-wrap gap-2">
+              {(['multiembed', 'hnembed', 'videasy'] as const).map((server, idx) => (
+                <button
+                  key={server}
+                  onClick={() => setSelectedServer(server)}
+                  className={`flex items-center gap-2 px-4 py-2 text-xs font-medium uppercase tracking-wider rounded-lg border transition-all duration-300 ${
+                    selectedServer === server 
+                      ? 'bg-white/10 border-white/20 text-white font-semibold' 
+                      : 'bg-transparent border-white/5 text-zinc-400 hover:text-white hover:border-white/10'
+                  }`}
+                >
+                  <PlayCircleIcon className={`w-3.5 h-3.5 ${selectedServer === server ? 'text-blue-400' : 'text-zinc-500'}`} /> 
+                  Server {idx + 1}
+                </button>
+              ))}
+            </div>
 
-                        {/* Rating - Updated for mobile size */}
-                        <div className="flex items-center space-x-2 bg-secondaryBg p-2 rounded-lg">
-                            <span className="text-textMuted font-bold text-sm">Rate this:</span>
-                            <div className="flex space-x-1">
-                                {[...Array(5)].map((_, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => handleRating(i + 1)}
-                                        className="text-textMuted hover:text-yellow-500 transition-colors duration-200"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                            <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.908 -1l3.082 -6.25l3.082 6.25l6.908 1l-5 4.867l1.179 6.873z" fill="currentColor" />
-                                        </svg>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div className="flex items-center space-x-3 bg-white/[0.02] border border-white/5 px-4 py-2 rounded-lg">
+              <span className="text-zinc-400 text-xs font-medium">Rate content:</span>
+              <div className="flex space-x-1">
+                {[...Array(5)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleRating(i + 1)}
+                    className="text-zinc-600 hover:text-blue-400 transition-colors duration-200 group transform active:scale-90"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                      <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.908 -1l3.082 -6.25l3.082 6.25l6.908 1l-5 4.867l1.179 6.873z" />
+                    </svg>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <aside
-          className="w-full lg:w-80 order-3 lg:order-3 bg-white/5 backdrop-blur-xl rounded-2xl p-4 border border-white/10"
-        >
-          <div className="flex flex-col gap-4">
+        <aside className="w-full lg:w-80 order-3 lg:order-3 bg-white/[0.01] border border-white/5 backdrop-blur-xl rounded-2xl p-5 shadow-2xl flex flex-col space-y-5">
+          <div className="flex items-start gap-4">
             {posterPath && (
-              <div className="relative w-[80px] h-[118px] rounded-lg overflow-hidden shadow-lg">
+              <div className="relative w-[75px] h-[110px] rounded-lg overflow-hidden border border-white/10 shadow-lg flex-shrink-0 bg-zinc-900">
                 <Image
                   src={getImageUrl(posterPath, 'w500')}
-                  alt={title || "Poster"}
-                  width={80}
-                  height={118}
+                  alt={title || "Poster profile"}
+                  width={75}
+                  height={110}
                   className="object-cover w-full h-full"
+                  priority
                 />
               </div>
             )}
-            
-            <h1 className="text-xl md:text-2xl font-bold text-textLight">{title}</h1>
-
-            <div className="flex flex-wrap gap-2 text-sm text-textMuted">
-              {isTVShow && (
-                <>
-                  <span className="px-2 py-1 bg-secondaryBg rounded-md">TV</span>
-                  <span className="px-2 py-1 bg-secondaryBg rounded-md">{episodeCount} Ep</span>
-                  <span className="px-2 py-1 bg-secondaryBg rounded-md">{runtime}m</span>
-                </>
-              )}
-              {!isTVShow && (
-                <>
-                  <span className="px-2 py-1 bg-secondaryBg rounded-md">Movie</span>
-                  <span className="px-2 py-1 bg-secondaryBg rounded-md">{runtime}m</span>
-                </>
-              )}
-              {releaseYear && <span className="px-2 py-1 bg-secondaryBg rounded-md">{releaseYear}</span>}
-              {voteAverage && voteAverage > 0 && (
-                <span className="flex items-center px-2 py-1 bg-secondaryBg rounded-md">
-                  <span className="text-accentYellow mr-1">⭐</span>
-                  {voteAverage.toFixed(1)}
-                </span>
-              )}
+            <div className="space-y-1 overflow-hidden">
+              <span className="text-xs font-semibold text-blue-400 uppercase tracking-wider block">
+                {mediaType === 'movie' ? 'Movie Details' : 'TV Show Details'}
+              </span>
+              <h2 className="text-lg font-bold tracking-tight text-white leading-tight break-words">
+                {title}
+              </h2>
             </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="bg-white/[0.02] border border-white/5 p-2 rounded-lg text-center">
+              <span className="text-zinc-500 block text-[10px] uppercase mb-0.5">Format</span>
+              <span className="text-zinc-200 font-semibold uppercase">{isTVShow ? `${episodeCount} EP` : 'Feature'}</span>
+            </div>
+            <div className="bg-white/[0.02] border border-white/5 p-2 rounded-lg text-center">
+              <span className="text-zinc-500 block text-[10px] uppercase mb-0.5">Duration</span>
+              <span className="text-zinc-200 font-semibold">{runtime || '--'}m</span>
+            </div>
+            <div className="bg-white/[0.02] border border-white/5 p-2 rounded-lg text-center">
+              <span className="text-zinc-500 block text-[10px] uppercase mb-0.5">Release Year</span>
+              <span className="text-zinc-200 font-semibold">{releaseYear || 'N/A'}</span>
+            </div>
+            {voteAverage && voteAverage > 0 ? (
+              <div className="bg-white/[0.02] border border-white/5 p-2 rounded-lg text-center flex flex-col items-center justify-center">
+                <span className="text-zinc-500 block text-[10px] uppercase mb-0.5">Rating</span>
+                <span className="text-yellow-400 font-bold flex items-center gap-1">
+                  ★ {voteAverage.toFixed(1)}
+                </span>
+              </div>
+            ) : null}
+          </div>
 
-            <p className="text-textLight text-sm">
+          <div className="border-t border-white/5 pt-4">
+            <span className="text-xs font-semibold tracking-wider text-zinc-400 uppercase block mb-2">
+              Overview
+            </span>
+            <div className="text-xs text-zinc-400 font-normal leading-relaxed tracking-wide">
               <span dangerouslySetInnerHTML={{ __html: formatOverviewText(showFullOverview ? overview : truncatedOverview) }} />
               {overview && overview.split(' ').length > OVERVIEW_WORD_LIMIT && (
                 <button
                   onClick={() => setShowFullOverview(!showFullOverview)}
-                  className="text-accentBlue hover:underline ml-2"
+                  className="text-blue-400 font-semibold text-xs block mt-2 hover:text-white transition-colors"
                 >
-                  {showFullOverview ? 'Less' : 'More'}
+                  {showFullOverview ? 'Read Less' : 'Read More'}
                 </button>
               )}
-            </p>
+            </div>
           </div>
         </aside>
       </div>
-      
-      <div className="relative z-30 w-full max-w-7xl mx-auto px-4 md:px-8 lg:px-12 mb-8">
-        <div className="mt-8">
+
+      <div className="w-full max-w-[1440px] mx-auto px-4 md:px-8 lg:px-12 pb-16 relative z-30 space-y-16">
+        <div className="border-t border-white/5 pt-8">
           <CommentSection mediaId={parseInt(id)} mediaType={mediaType as 'movie' | 'tv'} />
         </div>
 
         {recommendations.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-3xl font-bold mb-6">More Like This</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {recommendations.map((item) => (
-                <MovieCard
-                  key={item.id}
-                  content={item}
-                  contentType={(item as any).media_type || mediaType}
-                  genresMap={genresMap}
-                />
+          <div className="border-t border-white/5 pt-12 mt-12">
+            <div className="mb-8 border-b border-white/5 pb-4">
+              <span className="text-sm font-semibold tracking-wider text-blue-400 uppercase mb-1 block">
+                Recommendations
+              </span>
+              <h2 className="text-xl md:text-2xl font-bold text-white">
+                More Like This
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
+              {recommendations.slice(0, 18).map((item) => (
+                <div 
+                  key={item.id} 
+                  className="transform transition-transform duration-300 hover:scale-[1.02]"
+                >
+                  <MovieCard
+                    content={item}
+                    contentType={(item as any).media_type || mediaType}
+                    genresMap={genresMap}
+                  />
+                </div>
               ))}
             </div>
           </div>
         )}
       </div>
 
-      <footer className="relative z-30 w-full py-4 text-center text-textMuted text-sm bg-primaryBg mt-auto">
-        &copy; {new Date().getFullYear()} Stream Wave. All rights reserved. Data provided by TMDB.
+      <footer className="relative z-30 w-full py-6 text-center text-xs text-zinc-500 border-t border-white/5 bg-[#040406] mt-auto">
+        &copy; {new Date().getFullYear()} Stream Wave. All rights reserved. Sourced via TMDB.
       </footer>
     </div>
   );

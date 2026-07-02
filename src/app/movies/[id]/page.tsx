@@ -5,44 +5,65 @@ import { getMovieDetails, getPrimaryVideoKey, getMovieRecommendations, CrewMembe
 import MovieDetailContent from '@/components/MovieDetailContent';
 import { Metadata } from 'next'; 
 
-// ENHANCEMENT: THIS IS THE MAGIC LINE! 
-// It caches this specific movie page for 1 WEEK (604,800 seconds)
+// Cache this specific movie page for 1 WEEK (604,800 seconds)
 export const revalidate = 604800; 
 
-// Set up dynamic metadata... 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const movie = await getMovieDetails(Number(params.id));
+// Base URL for production canonical indexing
+const BASE_SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://streamwave.xyz';
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+// 1. DYNAMIC METADATA ENGINE
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const resolvedParams = await params;
+  const movie = await getMovieDetails(Number(resolvedParams.id));
+  
   if (!movie) {
     return {
       title: 'Movie Not Found - StreamWave', 
     };
   }
+  
   const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : '';
   const uniqueTitle = `${movie.title} ${releaseYear ? `(${releaseYear})` : ''} - Stream Official Details on StreamWave`;
   const overviewPrefix = "Watch now and explore the full story:";
   const uniqueDescription = `${overviewPrefix} ${movie.overview?.substring(0, 150) || 'Find cast, crew, ratings, and where to stream this movie.'}`;
+  
+  // Create absolute URLs for meta-crawlers
+  const canonicalUrl = `${BASE_SITE_URL}/movies/${movie.id}`;
+  const ogImageUrl = movie.backdrop_path 
+    ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` 
+    : `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
 
   return {
     title: uniqueTitle, 
-    description: uniqueDescription, 
+    description: uniqueDescription,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: uniqueTitle,
       description: uniqueDescription,
-      url: `/movies/${movie.id}`,
-      images: [{ url: `https://image.tmdb.org/t/p/original${movie.backdrop_path}` }],
-      type: 'website',
+      url: canonicalUrl,
+      images: [{ url: ogImageUrl, width: 1280, height: 720, alt: movie.title }],
+      type: 'video.movie',
     },
     twitter: {
       card: 'summary_large_image',
       title: uniqueTitle,
       description: uniqueDescription,
-      images: [`https://image.tmdb.org/t/p/original${movie.backdrop_path}`],
+      images: [ogImageUrl],
     },
   };
 }
 
-export default async function MovieDetailsPage({ params }: { params: { id: string } }) {
-  const id = Number(params.id);
+// 2. MAIN CORE SERVER COMPONENT
+export default async function MovieDetailsPage({ params }: PageProps) {
+  const resolvedParams = await params;
+  const id = Number(resolvedParams.id);
+  
   const [movie, recommendations, allGenres] = await Promise.all([
     getMovieDetails(id),
     getMovieRecommendations(id),
@@ -62,15 +83,51 @@ export default async function MovieDetailsPage({ params }: { params: { id: strin
   const writers = movie.credits?.crew?.filter((member: CrewMember) => member.department === 'Writing' && member.profile_path).slice(0, 3);
   const cast = movie.credits?.cast?.filter((member: CastMember) => member.profile_path).slice(0, 10);
 
+  // BUILD GOOGLE RICH SNIPPET SCHEMA
+  const jsonLdSchema = {
+    "@context": "https://schema.org",
+    "@type": "Movie",
+    "@id": `${BASE_SITE_URL}/movies/${movie.id}`,
+    "name": movie.title,
+    "description": movie.overview,
+    "image": movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : undefined,
+    "datePublished": movie.release_date,
+    "duration": movie.runtime ? `PT${movie.runtime}M` : undefined,
+    "genre": movie.genres?.map(g => g.name),
+    "aggregateRating": movie.vote_count > 0 ? {
+      "@type": "AggregateRating",
+      "ratingValue": movie.vote_average.toFixed(1),
+      "bestRating": "10",
+      "worstRating": "1",
+      "ratingCount": movie.vote_count
+    } : undefined,
+    "director": director ? {
+      "@type": "Person",
+      "name": director.name
+    } : undefined,
+    "actor": cast?.map(actor => ({
+      "@type": "Person",
+      "name": actor.name
+    }))
+  };
+
   return (
-    <MovieDetailContent
-      movie={movie}
-      videoKey={videoKey}
-      recommendations={recommendations}
-      director={director}
-      writers={writers}
-      cast={cast}
-      genresMap={genresMap} 
-    />
+    <>
+      {/* Search Engine Structured Script Tag */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSchema) }}
+      />
+      
+      <MovieDetailContent
+        movie={movie}
+        videoKey={videoKey}
+        recommendations={recommendations}
+        director={director}
+        writers={writers}
+        cast={cast}
+        genresMap={genresMap} 
+      />
+    </>
   );
 }

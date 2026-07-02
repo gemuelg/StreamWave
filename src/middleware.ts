@@ -62,7 +62,7 @@ export async function middleware(request: NextRequest) {
   return response
 }
 
-// THIS IS THE PART WE UPDATED:
+// OPTIMIZED CONFIGURATION MATCHER
 export const config = {
   matcher: [
     /*
@@ -71,8 +71,10 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - robots.txt (crawler rules file) -> FIXED
+     * - sitemap.xml (master index route) -> FIXED
      * - AND ALL STATIC ASSETS (svg, png, jpg, jpeg, gif, webp)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|robots\\.txt|sitemap\\.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

@@ -1,10 +1,9 @@
-// src/components/MovieCard.tsx
 "use client";
 
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getImageUrl, Movie, TVShow, MultiSearchResultItem } from '@/lib/tmdb'; // Import MultiSearchResultItem
+import { getImageUrl, Movie, TVShow, MultiSearchResultItem } from '@/lib/tmdb';
 import { StarIcon } from '@heroicons/react/24/solid';
 import HoverCard from './HoverCard';
 
@@ -14,8 +13,6 @@ interface MovieCardProps {
   posterPath?: string | null;
   voteAverage?: number;
   type?: 'movie' | 'tv';
-  
-  // Update the content prop to accept MultiSearchResultItem
   content?: Movie | TVShow | MultiSearchResultItem;
   contentType?: 'movie' | 'tv';
   genresMap?: Map<number, string>;
@@ -29,10 +26,7 @@ const MovieCard: React.FC<MovieCardProps> = (props) => {
   const hideTimer = useRef<NodeJS.Timeout | null>(null);
 
   const id = props.content ? props.content.id : props.id;
-  
-  // Use a more robust way to get the title/name
   const title = (props.content as MultiSearchResultItem)?.title || (props.content as MultiSearchResultItem)?.name || props.title;
-  
   const posterPath = props.content ? props.content.poster_path : props.posterPath;
   const voteAverage = props.content ? props.content.vote_average : props.voteAverage;
   const type = props.content ? props.contentType : props.type;
@@ -114,31 +108,33 @@ const MovieCard: React.FC<MovieCardProps> = (props) => {
       ref={cardRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="relative rounded-xl overflow-hidden shadow-lg 
-                 bg-secondaryBg cursor-pointer transition-transform duration-300 ease-in-out
-                 transform"
+      className="relative rounded-lg overflow-hidden bg-transparent cursor-pointer transition-all duration-500 ease-out group/card w-full"
     >
+      {/* PREMIUM SMOOTH CARD FRAME */}
       <Link href={linkHref} passHref prefetch={false}>
-        <div className="relative w-full h-auto pb-[150%] bg-gray-700">
+        <div className="relative w-full h-auto pb-[150%] bg-zinc-900 overflow-hidden rounded-lg shadow-md group-hover/card:shadow-xl transition-shadow duration-500">
           <Image
             src={imageUrl}
             alt={displayTitle}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover"
+            className="object-cover transition-transform duration-700 ease-out group-hover/card:scale-104"
             priority={false}
           />
-          {voteAverage && voteAverage > 0 && (
-            <div className="absolute top-2 right-2 flex items-center bg-accentPurple text-textLight px-2 py-1 rounded-md text-sm font-semibold z-10">
-              <StarIcon className="w-4 h-4 text-yellow-400 mr-1" />
+          
+          {/* FLOATING GLASS RATING BADGE */}
+          {voteAverage !== undefined && voteAverage > 0 && (
+            <div className="absolute top-2.5 right-2.5 flex items-center bg-[#040406]/70 backdrop-blur-md text-white px-2 py-1 rounded-md text-xs font-medium tracking-normal z-10 border border-white/10 shadow-sm opacity-90 group-hover/card:opacity-100 transition-opacity duration-300">
+              <StarIcon className="w-3 h-3 text-amber-400 mr-1 fill-current" />
               {rating}
             </div>
           )}
         </div>
       </Link>
 
-      <div className="p-3 text-center">
-        <h3 className="text-textLight text-md md:text-lg font-semibold truncate">
+      {/* MINIMALIST COMPACT FOOTER */}
+      <div className="pt-2.5 pb-1 px-1 text-left">
+        <h3 className="text-zinc-300 text-xs sm:text-sm font-medium tracking-wide truncate transition-colors duration-300 group-hover/card:text-white">
           {displayTitle}
         </h3>
       </div>

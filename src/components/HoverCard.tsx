@@ -10,18 +10,18 @@ import { useRouter } from 'next/navigation';
 import Portal from './Portal';
 
 interface HoverCardProps {
-  item: Movie | TVShow | MultiSearchResultItem;
-  contentType: 'movie' | 'tv';
-  position: { x: number; y: number };
-  genres: string;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
+  item: Movie | TVShow | MultiSearchResultItem;
+  contentType: 'movie' | 'tv';
+  position: { x: number; y: number };
+  genres: string;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
 }
 
 const getRatingColor = (rating: number) => {
-  if (rating >= 8) return 'text-pink-500';
-  if (rating >= 6) return 'text-yellow-400';
-  return 'text-red-400';
+  if (rating >= 8) return 'text-amber-400';
+  if (rating >= 6) return 'text-zinc-300';
+  return 'text-zinc-500';
 };
 
 const getCertification = (item: any, contentType: string): string | null => {
@@ -38,13 +38,13 @@ const getCertification = (item: any, contentType: string): string | null => {
 };
 
 const getMediaTypeLabel = (item: any) => {
-    if (item.media_type === 'tv' || ('first_air_date' in item && item.first_air_date)) {
-        return 'TV Show';
-    } else if (item.media_type === 'movie' || ('release_date' in item && item.release_date)) {
-        return 'Movie';
-    }
-    return 'N/A';
-}
+  if (item.media_type === 'tv' || ('first_air_date' in item && item.first_air_date)) {
+    return 'TV Show';
+  } else if (item.media_type === 'movie' || ('release_date' in item && item.release_date)) {
+    return 'Movie';
+  }
+  return 'N/A';
+};
 
 const HoverCard: React.FC<HoverCardProps> = ({ item, contentType, position, genres, onMouseEnter, onMouseLeave }) => {
   const [detailedItem, setDetailedItem] = useState<MovieDetails | TVShowDetails | null>(null);
@@ -70,94 +70,134 @@ const HoverCard: React.FC<HoverCardProps> = ({ item, contentType, position, genr
     fetchDetails();
   }, [item.id, contentType]);
 
-  const isMovie = contentType === 'movie';
-  const title = isMovie ? (item as Movie).title : (item as TVShow).name;
-  const overview = item.overview || "No overview available.";
-  const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
-  const id = item.id;
-  
-  const status = isMovie ? "Released" : "Returning Series";
-  const airedDate = ('release_date' in item && item.release_date) ? item.release_date : ('first_air_date' in item && item.first_air_date) ? item.first_air_date : 'N/A';
-  
-  const mediaLink = `/${isMovie ? 'movies' : 'tv'}/${id}`;
+  const isMovie = contentType === 'movie';
+  const title = isMovie ? (item as Movie).title : (item as TVShow).name;
+  const overview = item.overview || "No plot summary available for this title.";
+  const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
+  const id = item.id;
+  
+  // --- FIXED STATUS LOGIC: Extract actual backend status strings dynamically ---
+  const dynamicStatus = detailedItem 
+    ? (detailedItem as any).status || (isMovie ? "Released" : "Unknown")
+    : null;
+  
+  const airedDate = ('release_date' in item && item.release_date) 
+    ? new Date(item.release_date).toLocaleDateString(undefined, { dateStyle: 'medium' }) 
+    : ('first_air_date' in item && item.first_air_date) 
+      ? new Date(item.first_air_date).toLocaleDateString(undefined, { dateStyle: 'medium' }) 
+      : 'N/A';
+  
+  const mediaLink = `/${isMovie ? 'movies' : 'tv'}/${id}`;
 
-  const handleToggleWatchlist = () => {
-    if (!user) {
-      router.push('/auth');
-      return;
-    }
-
-    if (!isAdded) {
-      addItem(item);
-    }
-  };
+  const handleToggleWatchlist = () => {
+    if (!user) {
+      router.push('/auth');
+      return;
+    }
+    if (!isAdded) {
+      addItem(item);
+    }
+  };
 
   const ageRating = detailedItem ? getCertification(detailedItem, contentType) : null;
   const mediaTypeLabel = getMediaTypeLabel(item);
-
   const isDetailedDataLoaded = !!detailedItem;
 
-  return (
-    <Portal>
-      <div
-        style={{
-          position: 'fixed',
-          top: position.y,
-          left: position.x,
-          transform: 'translateY(-20px)',
-        }}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-        className="z-50 w-80 bg-darkOverlay rounded-lg shadow-2xl p-2 border border-gray-700 pointer-events-auto transition-all duration-200 "
-      >
-        <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between px-2 h-1">
-            <h3 className="text-xl font-bold text-white line-clamp-1 my-0">{title}</h3>
-            <span className={`flex items-center text-base font-semibold ${getRatingColor(item.vote_average)}`}>
-              <StarIcon className="w-4 h-4 mr-1" />{rating}
+  return (
+    <Portal>
+      {/* Dynamic Keyframe Injection for Ultra-Fluid Entrance Physics */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes subtleFluidEntrance {
+          0% { opacity: 0; transform: translateY(-4px) scale(0.98); filter: blur(4px); }
+          100% { opacity: 1; transform: translateY(-8px) scale(1); filter: blur(0); }
+        }
+        .animate-fluidCard {
+          animation: subtleFluidEntrance 0.28s cubic-bezier(0.21, 1.02, 0.43, 1.01) forwards;
+        }
+      `}} />
+
+      <div
+        style={{
+          position: 'fixed',
+          top: position.y,
+          left: position.x,
+        }}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        className="z-50 w-80 bg-zinc-950/95 backdrop-blur-xl rounded-xl shadow-[0_24px_50px_-12px_rgba(0,0,0,0.7)] p-4 border border-zinc-800/60 pointer-events-auto transition-all duration-300 ease-out animate-fluidCard select-none"
+      >
+        <div className="flex flex-col h-full space-y-3.5">
+          
+          {/* HEADER LAYER */}
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="text-base font-semibold text-white tracking-tight line-clamp-1 flex-1 leading-tight pt-0.5">
+              {title}
+            </h3>
+            <span className={`flex items-center text-xs font-semibold flex-shrink-0 bg-zinc-900/80 px-2 py-0.5 rounded-md border border-zinc-800/40 ${getRatingColor(item.vote_average)}`}>
+              <StarIcon className="w-3 h-3 mr-1 fill-current" />
+              {rating}
             </span>
           </div>
-  
-          <div className="flex items-center text-xs text-white mb-3 space-x-2 mt-2 px-2">
-            <span className="bg-gray-700 px-2 py-1 rounded">HD</span>
-            <span className="bg-gray-700 px-2 py-1 rounded">CC</span>
+  
+          {/* BADGE METADATA MATRICES */}
+          <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-medium tracking-wider text-zinc-400">
+            <span className="bg-zinc-900/90 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">HD</span>
+            <span className="bg-zinc-900/90 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">CC</span>
             {isDetailedDataLoaded ? (
-                <>
-                    <span className="bg-gray-700 px-2 py-1 rounded">{ageRating || 'N/A'}</span>
-                    <span className="bg-gray-700 px-2 py-1 rounded">{mediaTypeLabel || 'N/A'}</span>
-                </>
+              <>
+                <span className="bg-zinc-900/90 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">{ageRating || 'NR'}</span>
+                <span className="bg-zinc-900/90 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-300 tracking-normal">{mediaTypeLabel}</span>
+              </>
             ) : (
-                <>
-                    <div className="w-8 h-6 bg-gray-700 rounded animate-pulse" />
-                    <div className="w-12 h-6 bg-gray-700 rounded animate-pulse" />
-                </>
+              <>
+                <div className="w-8 h-4 bg-zinc-900 border border-zinc-800/30 rounded animate-pulse" />
+                <div className="w-14 h-4 bg-zinc-900 border border-zinc-800/30 rounded animate-pulse" />
+              </>
             )}
           </div>
   
-          <p className="text-sm text-gray-300 line-clamp-3 mb-3 px-2">{overview}</p>
+          {/* OVERVIEW CONTENT */}
+          <p className="text-xs text-zinc-400 leading-relaxed line-clamp-3 font-normal tracking-wide">
+            {overview}
+          </p>
   
-          <div className="text-xs text-gray-400 space-y-1 mb-8 px-2">
-            <p>Aired: {airedDate}</p>
-            <p>Status: {status}</p>
-            <p>Genres: {genres}</p>
+          {/* PRODUCTION TRACK TRACKER */}
+          <div className="text-[11px] text-zinc-500 space-y-1.5 py-2 border-y border-zinc-900">
+            <p className="flex justify-between"><span className="text-zinc-500">Aired</span> <span className="text-zinc-300 font-medium">{airedDate}</span></p>
+            <p className="flex justify-between">
+              <span className="text-zinc-500">Status</span> 
+              <span className="text-zinc-300 font-medium">
+                {dynamicStatus ? dynamicStatus : <span className="inline-block w-16 h-3 bg-zinc-900 rounded animate-pulse" />}
+              </span>
+            </p>
+            <p className="flex justify-between items-center gap-4">
+              <span className="text-zinc-500 flex-shrink-0">Genres</span> 
+              <span className="text-zinc-300 font-medium truncate max-w-[180px] text-right">{genres || 'N/A'}</span>
+            </p>
           </div>
   
-          <div className="flex items-end px-2">
-            <Link href={mediaLink} className="flex-1 mr-2" prefetch={false}>
-              <button className="w-full flex items-center justify-center bg-[#f04f7c] hover:bg-pink-600 text-white font-semibold py-2 rounded-lg transition-colors duration-200">
-                <PlayIcon className="w-5 h-5 mr-2" /> Watch now
+          {/* CORE ACTION SUBBLOCK CONTROLS */}
+          <div className="flex items-center gap-2 pt-0.5">
+            <Link href={mediaLink} className="flex-1" prefetch={false}>
+              <button className="group w-full flex items-center justify-center bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-medium py-2 rounded-md text-xs transition-all duration-300 ease-out hover:scale-[1.015] active:scale-98 shadow-md hover:shadow-xl hover:shadow-white/5">
+                <PlayIcon className="w-3 h-3 mr-1.5 fill-current transition-transform duration-300 ease-out group-hover:translate-x-0.5" /> 
+                Watch Now
               </button>
             </Link>
+            
             <button
               onClick={handleToggleWatchlist}
-              className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg transition-colors duration-200 ${
-                isAdded ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-700 hover:bg-gray-600'
+              className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-md border transition-all duration-300 ease-out ${
+                isAdded 
+                  ? 'bg-zinc-900 border-emerald-900/60 text-emerald-400 cursor-not-allowed' 
+                  : 'bg-zinc-900/40 border-zinc-800/80 hover:border-zinc-700 text-zinc-300 hover:text-white hover:scale-105 active:scale-95'
               }`}
               disabled={isAdded}
             >
-              {isAdded ? <CheckIcon className="w-6 h-6 text-white" /> : <PlusIcon className="w-6 h-6 text-white" />}
+              {isAdded ? <CheckIcon className="w-3.5 h-3.5 stroke-[3]" /> : <PlusIcon className="w-3.5 h-3.5 stroke-[3]" />}
             </button>
           </div>
+
         </div>
       </div>
     </Portal>

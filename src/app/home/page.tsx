@@ -38,7 +38,7 @@ interface UserInterest {
   interest_type: 'genre' | 'movie' | 'tv';
 }
 
-const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
 
 const filterReleasedContent = <T extends Movie | TVShow>(content: T[]): T[] => {
   const today = new Date();
